@@ -1,0 +1,97 @@
+gatekeeper
+
+kerentanan yang ada di file program ini adalah type confussion / logic flaw , kenapa?
+karena program ini meminta input lebih dari 999 maka input minimal kita adalah 4 digit.
+sementara itu fungsi reveal_flag hanya akan tereksekusi jika input adalah sesuatu dengan
+3 digit. terdengar mustahil tapi kita bisa membypassnya dengan melakukan sedikit
+input confussion dan membuat program membaca input kita sebagai angka lebih dari 999 namun
+hanya 3 digit.
+
+berikut adalah hasil decompilenya
+```
+
+  input_lenght = strlen(input);
+  iVar1 = is_valid_decimal(input);
+  if (iVar1 == 0) {
+    iVar1 = is_valid_hex(input);
+    if (iVar1 == 0) {
+      puts("Invalid input.");
+      uVar3 = 1;
+      goto LAB_00101698;
+    }
+    lVar2 = strtol(input,(char **)0x0,0x10);
+    local_40 = (int)lVar2;
+  }
+  else {
+    local_40 = atoi(input);
+  }
+  if (local_40 < 1000) {
+    puts("Too small.");
+  }
+  else if (local_40 < 10000) {
+    if ((int)input_lenght == 3) {
+      reveal_flag();
+  }
+  ```
+kesalahan terjadi pada bagian  lVar2 = strtol(input,(char **)0x0,0x10); dimana ini akan merubah
+tipe data str menjadi long, str = string maka kita bisa menginput huruf dan ketika huruf masuk ke
+fungsi ini ia akan berubah menjadi nilai asciinya, seperti yang kita tahu bahwa huruf memiliki nilai
+ascii yang cukup untuk membuat nilai melebihi 999 , misal huruf A sebanyak 3 kali = AAA= 656565
+dengan begini kita bisa membypas proteksi kustom lenght input ini dengan memasukkan huruf A sebanyak 3 kali
+
+┌──[reno@cybersec]──[~/ctf/rev/gatekeeper]
+└[]> nc green-hill.picoctf.net 60448
+Enter a numeric code (must be > 999 ): AAA
+Access granted: }e3dftc_oc_ip375cftc_oc_ip1_99ftc_oc_ip9_TGftc_oc_ip_xehftc_oc_ip_tigftc_oc_ipid_3ftc_oc_ip{FTCftc_oc_ipocipftc_oc_ip
+
+dengan begini kita berhasil melewati filter lenght, flag langsung muncul tapi sepertinya ini
+agak rusak, mari lihat source decompilernya.
+
+      while (local_24 = local_24 - 1, -1 < (int)local_24) {
+        putchar((int)*(char *)((long)__ptr + (long)(int)local_24));
+        if ((local_24 & 3) == 0) {
+          printf("ftc_oc_ip");
+
+ini adalah bagian inti dan bagian program terpenting di fungsi reveal_flag,
+dari baris pertama, while itu akan membaca local_24 (flag) dari baris paling belakang
+dan mereturnnya (putchar). maka flag akan ditampilkan secara terbalik alias string
+terakhirya di print duluan. namun tidak berhenti di situ. dibawahnya ada if
+jika local_24 & 3 == 0. apa maksudnya?
+
+ini adalah hasil optimasi decompiler ketika menemukan algoritma modulus perpangkatan 2
+x AND 3 == 0 itu sama dengan x % 4 == 0 atau  artinya x habis dibagi 4.
+kenapa bisa begitu? karena 4 adalah perpangkatan 2, dan compiler lebih memilih mengubah
+operasi mod bagi ini mejadi bitwise agar program berjalan lebih efisien.
+
+kembali lagi ke alur program. maka setiap index string flag habis di bagi 4, program kan
+memprint ftc_oc_ip. ini termasuk custom string obfuscation yang unik, karena format flag adalah
+picoctf dan jika di balik akan jadi ftcocip, pembuat soal sengaja memasukkan string menyerupai
+format flag untuk membuat kita ctfer merasa bahwa ftc_oc_ip ini adalah bagian asli flag. padahal
+ini murni hanya sisipan racun dari pembuat soal.
+
+jadi untuk mengatasi ini cukup mudah, bisa pakai python untuk mengambil stringnya dan memfilter string
+racun tersebut, lalu membaliknya.
+
+ 1 from pwn import *
+ 2
+ 3 io = process('./gatekeeper')
+ 4 io.sendlineafter(b'(must be > 999 ): ',b'AAA')
+ 5 io.recvuntil(b'Access granted:')
+ 6
+ 7 encoded_flag = io.recvall().decode()
+ 8 # menangkap string flag, io.recvall().decode() bisa diganti dengan string flag jika tidak mau otomasi pake pwn
+ 9
+10 filtered_flag = encoded_flag.replace('ftc_oc_ip','')
+11 flag = filtered_flag[::-1]
+12 print(flag)
+
+
+┌──[reno@cybersec]──[~/ctf/rev/gatekeeper]
+└[]> python3 exploit.py
+[+] Opening connection to green-hill.picoctf.net on port 62248: Done
+[+] Receiving all data: Done (119B)
+[*] Closed connection to green-hill.picoctf.net port 62248
+
+picoCTF{3_digit_hex_GT_999_1c573d3e}
+
+done
