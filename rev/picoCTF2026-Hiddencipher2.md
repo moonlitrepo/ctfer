@@ -15,8 +15,7 @@ formalitas dulu siapa tahu file ini unik, tapi sepertinya ini adalah program bia
 hiddencipher2: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=599eedd164a0821201befcb967a2529efa0cc3ce, for GNU/Linux 3.2.0, not stripped
 ```
 
-saat program dijalankan, ia akan menanyakan pertanyaan matematika tersulit yang pernah aku kerjakan. setelah berhasil menjawabnya program dengan senang hati memberikan flagnya
-dalam bentuk terenkripsi. 
+saat program dijalankan, ia akan menanyakan pertanyaan matematika tersulit yang pernah aku kerjakan. setelah berhasil menjawabnya, program dengan senang hati memberikan flagnya dalam bentuk terenkripsi. 
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(hidden-cipher2)
 └> ./hiddencipher2
@@ -85,7 +84,7 @@ jika ingin penjelasan bisa baca ini, atau kalau mau langsung exploit skip aja da
 # how it works
 mulai dari for (i = 0; *(char *)(flag + i) != '\0'; i = i + 1)  
 sebenarnya flag **bukan variabel yang menyimpan string flag**. tapi adalah **pointer yang menunjuk ke suatu alamat di program yang menyimpan kumpulan karakter flag** per byte nya.
-nah makannya itu bisa ada flag + i. karena misal alamat 0x01 sudah dibaca maka flag + i = 0x01 + 1 = 0x02 dan akan bertambah seterusnya hingga program menabrak null bytes.
+contoh aja nih misal alamat 0x01 sudah dibaca maka flag + i = 0x01 + 1 -> 0x02 dan akan bertambah seterusnya hingga program menabrak null bytes.
 
 selanjutnya bagian enkripsi kustom. disini bagian intinya adalah (flag + i) * correct_answer. jika karakter pertama flag adalah p dan correct answernya 3 misal.
 maka rumusnya akan jadi gini  
@@ -124,7 +123,7 @@ c = 4
 decrypt = [chr(i // c) for i in server_enc]
 print(f'flag server : {"".join(decrypt)}')
 ```
-exekusi
+eksekusi
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(hidden-cipher2)
 └> python3 exploit.py
@@ -134,4 +133,4 @@ flag server : picoCTF{m4th_b3h1nd_c1ph3r_3185ed2e}
 
 done 
 flag = **picoCTF{m4th_b3h1nd_c1ph3r_3185ed2e}**
-yep kurang lebih begitu. intinya ini adalah proses enkripsi kustom yang sangat sederhana. penting si belajar bahasa c biar bisa ngebaca alur program dari hasil decompilenya
+yep kurang lebih begitu. intinya ini adalah proses enkripsi kustom yang sangat sederhana. penting si belajar bahasa c biar bisa baca alur program dari hasil decompilenya
