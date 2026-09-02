@@ -342,5 +342,7 @@ done
 
 
 # how it works
+coming soon - belum berani bikin how it works karena belum jago bahasa C++ . see ya.
+
 # conclusion
-program ini membuat 
+program ini memiliki flag yang ditulis secara hardcoded namun hanya setengah. dan tidak semua variabel yang diinisiasi dengan char itu ditambahkan ke flag. maka karena itu sangat penting untuk dapat memahami alur program terutama bahasa C++  yang sedikit merepotkan karena bentuk program nya yang sedikit berbeda dari program biasa yang dicompile dari bahasa C.
