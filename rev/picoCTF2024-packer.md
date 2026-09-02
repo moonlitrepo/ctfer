@@ -131,7 +131,7 @@ rupanya hasil disassemblynya cukup banyak, sekitar hingga main+500 . jadi aku ak
    0x0000000000401ebe <+345>:   mov    QWORD PTR [rbp-0x40],rax
    0x0000000000401ec2 <+349>:   mov    QWORD PTR [rbp-0x38],rdx
 ```
-kenapa aku anggap ini mencurigakan? karena disin programnya berusaha memasukkan banyak sekali value hex kedalam stack. coba kita ambil 1 blok saja daria fungsi ini
+kenapa aku anggap ini mencurigakan? karena disini programnya berusaha memasukkan banyak sekali value hex kedalam stack. coba kita ambil 1 blok saja daria fungsi ini
 ```assembly
    0x0000000000401e3a <+213>:   movabs rax,0x6636333639363037
    0x0000000000401e44 <+223>:   movabs rdx,0x6237363434353334
