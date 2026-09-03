@@ -2,18 +2,19 @@
 
 
 hello yall welcome to my write up again
-
+# overview
 catatan ini adalah cara ku mengerjakan chall hidden cipher 1 . termasuk chall baru karena rilis tahun ini. 2026. chall hiddencipher1 ini menyajikan file program elf 86-64 dengan 
 flag kw nya. curiga pasti disuruh bikin keygen ini wkwkkwww. dan benar saja saat program dijalankan kita langsung diberikan hasil enkripsi dari file flag.txt tersebut. 
 jelas tugas kita adalah mereverse nya dan membuat skrip untuk mendekripsi enkripsi tersebut.
 
+# recon & analysis
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(hidden-cipher1)
 └> ./hiddencipher
 Here your encrypted flag:
 235a201d70201548251358110c552f135409
 ```
-namun ada sedikit masalah disini. ternyata file program ini memiliki semacam 'anti decompile' membuat kita tidak bisa mendecompile atau melihat isi program tersebut, bahkan gdb
+namun ada sedikit masalah disini. ternyata file program ini memiliki semacam `anti decompile` membuat kita tidak bisa mendecompile atau melihat isi program tersebut, bahkan gdb
 dan ghidra ga ngatasin.
 
 percobaan melihat fungsi di gdb :
@@ -26,7 +27,7 @@ pwndbg>
 jadi apa yang terjadi disini? kenapa kita gabisa membongkar programnya? 
 
 # upx
-UPX (Ultimate Packer for eXecutables) ,alias ini adalah packer yang mengompress ukuran program executable menjadi ukuran yang lebih kecil dan menyembunyikan kode asli
+`UPX (Ultimate Packer for eXecutables)` ,alias ini adalah packer yang mengompress ukuran program executable menjadi ukuran yang lebih kecil dan menyembunyikan kode asli
 dari program yang di pack. sehingga fungsi yang ada ilang semua. namun cara mengatasinya cukup mudah. kita perlu install dulu tools upx nya 
 
 
@@ -113,8 +114,8 @@ di program , anggap saja variabel flag. setelah itu program mengambil key dari f
 detail menurut ku :
 
 # data enkripsi
-pertama kita coba ambil dulu kunci nya , dari decompiler , get_secret menyimpan angka 83,51,67,114,51,116,0 . kalau diubah jadi ascii jadinya : **S3Cr3t** lalu enc flag dari
-nc adalah **235a201d702015483b1d412b265d3313501f0c072d135f0d2002302d0a406a0a701756102e** . 
+pertama kita coba ambil dulu kunci nya , dari decompiler , get_secret menyimpan angka 83,51,67,114,51,116,0 . yang jika diubah dalam char sesuai kode ascii akan menjadi : `S3Cr3t`.  
+setelah mendapatkan key selanjutnya mengambil enc flag dari koneksi nc server picoctf : `235a201d702015483b1d412b265d3313501f0c072d135f0d2002302d0a406a0a701756102e` . 
 
 # proses enkripsi
 apa si yang dilakukan program? 
@@ -123,12 +124,12 @@ for (i = 0; (long)i < (long)flag_size; i = i + 1) {
       printf("%02x",(ulong)(*(byte *)(key + i % 6) ^ *(byte *)((long)flag_loc + (long)i)))
 ```
 baris 1 adalah perulangan for i dengan i yang terus bertambah hingga bernilai dengan ukuran flag , jika dalam python : **for i in range(len(flag)):**  
-nah baris e 2 adalah inti enkripsi nya. tiap byte dalam flag akan di xor dengan byte key.  
+nah baris ke 2 adalah inti enkripsi nya. tiap byte dalam flag akan di xor dengan byte key.  
 
 jika fokus membelah kodenya:
-print("%02x, <-- ini untuk mengeluarkan enkripsi dalam bentuk hex  
-(ulong)(*(byte *)(key + i % 6)  <-- key beruukuran 6 karakter, jadi dengan i mod6 ketika perulangan xor mencapai string terakhir key , key akan mengulang dari string awal.
-^ *(byte *)((long)flag_loc + (long)i))) <-- key tadi akan di xor dengan tiap byte dari flag
+`print("%02x`, <-- ini untuk mengeluarkan enkripsi dalam bentuk hex  
+`(ulong)(*(byte *)(key + i % 6)`  <-- key beruukuran 6 karakter, jadi dengan i mod6 ketika perulangan xor mencapai string terakhir key , key akan mengulang dari string awal.
+`^ *(byte *)((long)flag_loc + (long)i)))` <-- key tadi akan di xor dengan tiap byte dari flag
 
 aku coba kasi contoh
 
@@ -165,8 +166,8 @@ tinggal di run
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(hidden-cipher1)
 └> python3 inverse.py
-b'picoCTF{xor_unpack_4nalys1s_94993eed}'
+b'picoCTF{..........redacted.........}'
 ```
 
 done nih  
-flag : **picoCTF{xor_unpack_4nalys1s_94993eed}**
+flag : `picoCTF{..........redacted.........}`
