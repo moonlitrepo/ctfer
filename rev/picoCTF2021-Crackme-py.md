@@ -1,6 +1,7 @@
 # picoCTF2021-Crackme-py.md
 # overview
 <img width="493" height="263" alt="image" src="https://github.com/user-attachments/assets/8635db15-e070-41a3-9408-c3196c165366" />
+
 kita diberi source code python dan harus mendecode flag yang sudah ada di source code tersebut.
 
 # recon
@@ -93,4 +94,8 @@ kita bisa langsung mencoba menggunakan program decode ini.
 cara menggunakan fungsi `decode_secret()` ini adalah dengan mengetik ulang nama fungsi itu dengan argumen ciphertext nya.  
 
 cukup tambahkan `decode_secret(bezos_cc_secret)` di atas `choose_greatest()` atau hapus saja `choose_greatest()` dan ganti dengan fungsi decode tersebut.
+<img width="314" height="59" alt="image" src="https://github.com/user-attachments/assets/d0e52ff6-1940-448b-b128-8f5666fc0f1c" />
+
 # conclusion
+ini adalah chall sederhana yang meengenalkan kita dengan algoritma encode ROT47 , walau kita tidak secara langsung menulis solver dan hanya memanggil fungsi tetap saja 
+untuk mengerjakan chall ini memerlukan pemahaman dasar tentang logika pemrograman python.
