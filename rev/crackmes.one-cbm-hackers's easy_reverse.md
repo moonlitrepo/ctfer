@@ -1,4 +1,4 @@
-<img width="706" height="113" alt="image" src="https://github.com/user-attachments/assets/c2643c5a-b8df-4c6d-a464-b86aa3733d07" /># crackmes.one-cbm-hackers's easy_reverse
+# crackmes.one-cbm-hackers's easy_reverse
 
 # overview
 chall reverse dari `crackmes.one` buatan `cbm-hacker's` . 
