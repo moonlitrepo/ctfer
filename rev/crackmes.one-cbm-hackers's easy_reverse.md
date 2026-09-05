@@ -145,7 +145,7 @@ kondisi 1 :
    0x00000000000011d3 <+15>:    cmp    DWORD PTR [rbp-0x4],0x2
    0x00000000000011d7 <+19>:    jne    0x1257 <main+147>
 ```
-karena sebelumnya argumen kita disimpan di rbp-0x4. jadi yang di compare dengan 0x2 hanya index pertama dari argumen .jadi kita bisa dengan mudah membypass ini dengan menjalankan program dengan 2 sebagai argumen `run 2` (jika di gdb) 
+pertama program mengcompare `rbp-0x4` dengan `0x2`. rbp-0x4 itu menyimpan argc jadi disini program hanya memastikan apakah kita sudah mejalankan programnya dengan argumen atau belum. cukup gunakan argumen saat run programnya untuk bypass kondisi ini.
 
 
 kondisi 2 :
@@ -172,22 +172,23 @@ kondisi 3 :
 ```
 terakhir program akan mengambil alamat dari string kita disimpan yaitu di `rbp-0x10 + 0x8` (tempat input 2222222222) lalu alamat dari string itu ditambah dengan 4 `rax+4`
 untuk mengambil index ke 5 dari string input kita. setelah itu register al dicompare dengan 0x40. (@ dalam char) aku bisa dengan mudah membypass ini dengan argumen
-`2000@00000`
+`0000@00000`
 
 ```
-pwndbg> run 2000@00000
+pwndbg> run 0000@00000
 Continuing.
 Nice Job!!
-flag{2000@00000}
+flag{0000@00000}
 [Inferior 1 (process 1878) exited normally]
 ```
 
 nah ini udah work, kesimpulannya kita bisa menginput flag apa saja selama memenuhi ketiga syarat syarat tadi.
 
 syarat :
-1. index pertama = 2
-2. panjang string = 10
-3. index kelima = @
+1. panjang string = 10
+2. index kelima = @
+
+dengan ini kita bisa dengan bebas membuat flag sesuka hati misal `flag@crack` , `2all@crack` , dan bahkan `hack@omaga` hahahha
 
 
 
