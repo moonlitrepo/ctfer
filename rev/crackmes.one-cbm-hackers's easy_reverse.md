@@ -130,11 +130,12 @@ kondisi 3 :
    0x0000000000001206 <+66>:    jne    0x1235 <main+113>
 ```
 
-jika argumen yang kita berikan tidak sesuai dengan syarat kondisi tersebut maka program akan men trigger fungsi usage() nya. untuk melewati kondis kondisi tersebut aku membuat payload untuk argumen1 yaitu `2cra@ckall` dan langsung saja coba  
-<img width="706" height="113" alt="image" src="https://github.com/user-attachments/assets/b1a900ea-ad4c-476c-9397-283fa10e7315" />
+jika argumen yang kita berikan tidak sesuai dengan syarat kondisi tersebut maka program akan men trigger fungsi usage() nya. untuk melewati kondis kondisi tersebut aku membuat payload untuk argumen1 yaitu `2all@crack` dan langsung saja coba  
+<img width="388" height="71" alt="image" src="https://github.com/user-attachments/assets/8e0d3911-ad79-4115-8910-02de4506283a" />
+
 
 done flag sesuai input dan kita berhasil membuat program melakukan print flag. flag akan sesuai dengan argumen yang kita gunakan. 
-flag = `flag{2cra@ckall}`
+flag = `flag{2all@crack}`
 
 
 berikut penjelasannya 
