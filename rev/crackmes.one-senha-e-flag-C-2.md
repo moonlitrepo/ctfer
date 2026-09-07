@@ -52,6 +52,8 @@ sepertinya itu adalah password. jika bertanya kenapa aku berasumsi begitu ya kar
 jika input ku sesuai dengan apa yang diharapkan oleh program : `senhafoda1234567890` jadi kita bisa bypass kondisi ini.
 
 <img width="423" height="71" alt="image" src="https://github.com/user-attachments/assets/25058949-62dd-4e9d-a3cf-9abd47eb4208" />
+
+
 welldone
 
 # note
