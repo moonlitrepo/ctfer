@@ -1,4 +1,4 @@
 hello world
 
-repo dengan write up random. 
+ini cuma repo dengan write up random. 
 
