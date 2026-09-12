@@ -84,6 +84,21 @@ bagian fgets yang meminata input secret key :
 pada epilog program membuat stack dengan ukuran 0x24. sedangkan, pada fungsi fgets, malah dibatasi melebihi stack yaitu hingga 0x80. disini ditemkanlah kerentanan **buffer 
 overflow**
 
-selanjutnya adalah menghitung offset dari input ke eip address.
+dengan begini aku dapat meninmpa return address. jadi tinggal menghitung offsetnya saja, aku pakai gdb untuk menghitungnya.
 
---belum selesai--
+<img width="561" height="217" alt="image" src="https://github.com/user-attachments/assets/4b1a88b2-fe64-4bf7-9853-d3f99274f826" />
+
+rumus jarak input ke register eip adalah `eip address - input address` di kasus ini aku memasukkan key omagakey dan mencari addressnya . setelah ku hitung aku dapat hasip 0x2c
+
+```
+>>> print(hex(0xffffcf6c-0xffffcf40))
+0x2c
+```
+# exploit
+
+untuk melakukan exploitnya, tinggal buat skrip python + pwntools
+<img width="744" height="255" alt="image" src="https://github.com/user-attachments/assets/57c0753d-2506-4ec5-b1ea-c5e2c47b7d28" />
+
+
+done 
+flag = picoCTF{..............................}
