@@ -74,3 +74,11 @@ sangat disarankan untuk melakukan split layar seperti dibawah ini, sebenernya be
 <img width="960" height="600" alt="image" src="https://github.com/user-attachments/assets/e2d303a8-805f-454b-8b5d-e21b79275559" />
 
 setelah melakukan target remote, harusnya kita bisa melakukan debugging seperti biasa, tapi perlu diingat, saat debuging remote tidak ada run, pakai continue. dan input output ada di panel server (punyaku yang kiri)yang kanan murni hanya untuk keperluan debugging.
+
+
+# prolog arsitektur arm
+```Assembly
+   0x0000727f074409e4 <+0>:     sub     sp, sp, #0x80
+   0x0000727f074409e8 <+4>:     stp     x29, x30, [sp, #112]
+   0x0000727f074409ec <+8>:     add     x29, sp, #0x70
+```
