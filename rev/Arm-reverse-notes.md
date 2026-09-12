@@ -11,3 +11,14 @@ ARM 32-bit (armhf):
 ARM 64-bit (aarch64):
 `qemu-aarch64 -L /usr/aarch64-linux-gnu ./nama_binary`
 
+
+# cara debug arm pakai gdb
+
+1. buat server pakai qemu
+  `qemu-arm -g 1234 -L /usr/arm-linux-gnueabi ./chall_arm32`
+2. jalankan gdb lalu connect
+   **note : lakuin di terminal baru**
+   `gdb-multiarch ./chall_arm32`
+   `target remote :1234`
+
+it should work. 
