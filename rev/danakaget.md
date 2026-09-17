@@ -132,3 +132,10 @@ flag sebelumnya : = `Goods{4njAy_KER3N_81s4_REvERsE_5PAR7@}` untung masi kesimpe
 # kesimpulan
 chall ini merupakan gabungan dari kategori reverse-web sederhana. serta sedikit pemahaman mengenai bahasa java. funfact: ada beberapa alternatif untuk mengerjakan chall ini
 seperti menulis ulang decrypter rsa itu di python atau hanya menjalankan apknya. tapi cara ku ya gini deh. untuk penjelasan nya CMIIW ya. 
+
+# tools 
+- default-jdk 
+- strings
+- jadx (gui)
+- text editor -> vs Codium (pake nano / vim doang juga bisa)
+
