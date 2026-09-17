@@ -25,6 +25,8 @@ link : https://seafile.bagusarya.me/f/2e003b3c99fa416bad47/
 
 link tersebut mengarah ke seafile yang menyimpan file FlagVault.apk . aku download di laptop dan coba baca isinya pakai jadx.
 
+note : aku ga menjalankan apknya karena belum punya emulator android hehe:)
+
 di source codenya ada 4 class 
 - CryptoVault
 - MainActivity
