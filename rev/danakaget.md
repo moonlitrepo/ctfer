@@ -1,7 +1,7 @@
 # danakaget.md
 
 # deskripsi
-author : mas bagus
+author : mas bagus  
 deskripsi : solve coba  
 **link terlampir : https://seafile.bagusarya.me/f/b5f3fb4d4557485b8008/?dl=1**
 
