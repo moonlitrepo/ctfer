@@ -123,7 +123,9 @@ another link
 tadi flagnya bukan itu , tapi yaudah si. 
 
 
-flag = `Goods{........................................ini_link_duit_gratis_btw.........................................}`
+flag = `Goods{........................................ini_link_duit_gratis_btw.........................................}`  
+
+
 flag sebelumnya : = `Goods{4njAy_KER3N_81s4_REvERsE_5PAR7@}` untung masi kesimpen wkwk
 
 
