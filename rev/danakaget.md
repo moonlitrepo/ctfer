@@ -134,8 +134,10 @@ chall ini merupakan gabungan dari kategori reverse-web sederhana. serta sedikit 
 seperti menulis ulang decrypter rsa itu di python atau hanya menjalankan apknya. tapi cara ku ya gini deh. untuk penjelasan nya CMIIW ya. 
 
 # tools 
-- default-jdk 
+- default-jdk
+  github download : `https://github.com/skylot/jadx/releases` ATAU lewat linux : `sudo apt install default-jdk binutils`
 - strings
+  
 - jadx (gui)
 - text editor -> vs Codium (pake nano / vim doang juga bisa)
 
