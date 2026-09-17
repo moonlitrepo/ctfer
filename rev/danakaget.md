@@ -13,7 +13,9 @@ link terlampir merupakan link download file `foto.jpg`
 
 <p align="center"><img width="60%" height="481" alt="image" src="https://github.com/user-attachments/assets/93c66876-7a54-4598-86b4-defd2cd18c00" /></p>
 
-kayanya lebih baik tidak perlu dibuka. intinya karena ini file foto jadi perlu di analisis dengan **tools forensic dasar like exiftool ,strings** dan lainnya. hasil exiftool 
+foto random... 
+
+intinya karena ini file foto jadi perlu di analisis dengan **tools forensic dasar like exiftool ,strings** dan lainnya. hasil exiftool 
 cukup menarik karena metadatanya terkesan ramai bahkan ada claude yang numpang nama di metadatanya hm. 
 
 
