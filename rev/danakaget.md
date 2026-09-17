@@ -14,7 +14,10 @@ link terlampir merupakan link download file `foto.jpg`
 <p align="center"><img width="60%" height="481" alt="image" src="https://github.com/user-attachments/assets/93c66876-7a54-4598-86b4-defd2cd18c00" /></p>
 
 kayanya lebih baik tidak perlu dibuka. intinya karena ini file foto jadi perlu di analisis dengan **tools forensic dasar like exiftool ,strings** dan lainnya. hasil exiftool 
-cukup menarik karena metadatanya terkesan ramai bahkan ada claude yang numpang nama di metadatanya hm. lanjut analisis aku menemukan hal menarik lain di hasil strings foto. 
+cukup menarik karena metadatanya terkesan ramai bahkan ada claude yang numpang nama di metadatanya hm. 
+
+
+lanjut analisis aku menemukan hal menarik lain di hasil strings foto. 
 
 <p align="center"><img width="60%" height="167" alt="image" src="https://github.com/user-attachments/assets/a0f4d589-e3fc-4656-8fd6-749765ed8c24" /></p>
 
