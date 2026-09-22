@@ -95,14 +95,15 @@ leak data tersebut akan ku gunakan untuk menimpa return address dengan alamat me
 
 aku coba buka gdb dan pasang breakpoint di fungsi echo_valley() karena target return address yang akan di timpa adalah return address dari fungsi tersebut.
 
-setelah itu aku coba lihat frame dan coba leak beberapa alamat melalui format string. kabar baiknya terdapat alamat memory yang hanya berjarak 8 byte dari return address fungsi 
-tersebut. itu adalah index ke 20. 
+setelah itu aku coba lihat frame dan coba leak beberapa alamat melalui format string. kabar baiknya terdapat alamat memory yang hanya berjarak 8 byte dari return address fungsi tersebut. itu adalah index ke 20.  aku juga menambahkan A sebanyak 4 kali di depan untuk mengetahui alamat memori mana input ku di simpan, huruf A itu akan membuat
+pola hex berulang seperti 41414141 sehingga mudah dilacak.
 
-<p align="center"> <img width="949" height="365" alt="image" src="https://github.com/user-attachments/assets/1bded58a-9edf-4e78-ac09-17705d0f766b" />
-</p>
+<p align="center"> <img width="947" height="274" alt="image" src="https://github.com/user-attachments/assets/9d3effa6-838d-4676-9fcb-4900dcab24aa" /></p>
 
-target leak return address : `[leak index 20] - 8 byte`
+[kotak biru] posisi start input : `leak index 6`  
+[kotak merah] target leak return address : `[leak index 20] - 8 byte`
 ini akan berguna untuk skrip exploit akhir nanti.
+
 
 **leak return address with python script**
 
@@ -110,23 +111,23 @@ aku melakukan otomasi dengan skrip python :
 <p align = "center"><img width="395" height="239" alt="image" src="https://github.com/user-attachments/assets/c30da8d2-1adb-4e01-af0a-00cf8deca40e" />
  </p>
 
-bonusnya dengan skrip python ini aku juga mendapatkan pie address dari main. cukup berguna untuk menghitung offset ke fungsi print_flag()
+bonusnya dengan skrip python ini aku juga mendapatkan pie address dari main. cukup berguna untuk menghitung offset ke fungsi print_flag()  
+main address = `index 27`
 
 
 **menghitung offset print_flag()**   
 
 aku kembali ke gdb untuk mencari alamat main dan print_flag() lalu menghitung offset / selisihnya
 
-offset = main - print_flag
+offset = main - print_flag  
+offset = 0x401 - 0x269  
+offset = 408  
 
-offset = 0x1401 - 0x1307 
+atau bisa menggunakan elf.sym dan menguranginya secara langsung di skrip akhir.
 
-offset = 250
 
-**menghitung input index**
-
-<img width="955" height="113" alt="image" src="https://github.com/user-attachments/assets/4d1d6ab5-4c72-47e2-9a7b-596f20dfdff4" />
-
+# final script
+[solver.py](solver.py)
 
 
  
