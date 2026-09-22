@@ -129,5 +129,10 @@ atau bisa menggunakan elf.sym dan menguranginya secara langsung di skrip akhir.
 # final script
 [solver.py](solver.py)
 
+<p align="center"> <img width="466" height="104" alt="image" src="https://github.com/user-attachments/assets/17401f78-2c55-4294-ae58-ebceeb23ab62" /> </p> 
+
+done . 
+
+flag = **picoctf{.....................}**
 
  
