@@ -24,7 +24,7 @@ ini cuma repo dengan write up random.
 ```
 
 # stack : dengan canary
-```
+```C
 HIGH MEMORY
 +--------------------------+-------------------+
 |  int b                   |  EBP + 0x0C (+12) |
