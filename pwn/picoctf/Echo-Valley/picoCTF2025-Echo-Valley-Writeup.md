@@ -135,4 +135,10 @@ done .
 
 flag = **picoctf{.....................}**
 
+# all script i make to solve
+solver terakhir : [solver.py](solver.py)  
+leaker address  : [leaker.py](leaker.py)  
+
+tools leaker    : [exploit.py](exploit.py) (ini cuman versi rapi dan gabungan dari 2 skrip di atas si)
+
  
