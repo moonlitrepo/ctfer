@@ -35,9 +35,9 @@ HIGH MEMORY
 +--------------------------+-------------------+
 |  Saved EBP     <-- EBP   |  EBP + 0x00 ( 0)  |
 +--------------------------+-------------------+
-|  STACK CANARY (random)   |  EBP - 0x04 (-4)  |  <- slot baru, selalu paling atas di antara local var
+|  STACK CANARY (random)   |  EBP - 0x04 (-4)  |  <- value hex random, selalu diakhiri null bytes (00)
 +--------------------------+-------------------+
-|  char buf[5]             |  EBP - 0x0C (-12) |  <- buffer diletakkan PALING DEKAT canary
+|  char buf[5]             |  EBP - 0x0C (-12) |  <- buffer diletakkan PALING DEKAT canary walau di deklarasikan di urutan terakhir
 +--------------------------+-------------------+
 |  short e                 |  EBP - 0x0E (-14) |  <- non-buffer digeser ke bawah
 +--------------------------+-------------------+
