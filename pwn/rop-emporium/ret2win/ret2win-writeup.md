@@ -45,6 +45,8 @@ Stripped:   No
 ```
 untungnya program ini tidak memiliki proteksi PIE sehingga alamat memory nya akan selalu sama, canary juga mati jadi progam ini benar benar rentan dengan buffer overflow.
 
+terakhir aku akan mencari alamat dari ret gadget. menggunakan tools ROPgadget : `ROPgadget --binary ./ret2win | grep "ret"`
+
 aku membuat [skrip python](solver.py) untuk mengambil flagnya.
 
 <p align ="center"><img width="854" height="433" alt="image" src="https://github.com/user-attachments/assets/f5e5558e-5340-410c-bdd2-a57689211fb2" />
