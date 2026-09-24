@@ -1,5 +1,10 @@
 # echo siang gratis
 
+# Tools
+- ROPgadget
+- GDB
+- pwntools
+
 # analysis & step by step expoit
 
 first, karena chall ini memiliki libc, aku gunakan pwninit untuk melakukan patch elf. dari metadata dan checksec, file ini adalah 64 bit dan tidak dilengkapi proteksi
@@ -69,6 +74,10 @@ kandidat ret yang sangat bersih. address ret : **0x40101a**
 ```
 sempurna, address rdi : **4011be**
 
+kenapa butuh ropgadget rdi? melihat ulang metadatanya, program ini adalah binary 64 bit. ketika memanggil fungsi dengan argumen, argumen tersebut akan dimasukkan ke 
+pointer bernama register terlebih dahulu, baru register itu dimasukkan ke fungsi , jadi bukan system(/bin/sh) tapi system(rdi) , dan untuk memasukkan value ke rdi butuh
+gadget pop rdi disusul valuenya.
+
 ini sudah cukup . jadi aku akan membuat program lompat ke fungsi puts dan membuatnya mencetak alamat puts@got , sintaksnya akan jadi : puts(puts@got)
 
 setelah dapat alamatnya aku akan menguranginya dengan puts static di libc . dan mendapatkan base address dari libc. dengan mendapatkan base address nya, aku bisa mengakses
@@ -108,6 +117,6 @@ flag{r3t2l1bc_or_r3t2w1n_y0u_ch0se_th3_p4th}
 $
 ```
 welldone
-flag : flag{r3t2l1bc_or_r3t2w1n_y0u_ch0se_th3_p4th}
+flag : **flag{r3t2l1bc_or_r3t2w1n_y0u_ch0se_th3_p4th}**
 
 
