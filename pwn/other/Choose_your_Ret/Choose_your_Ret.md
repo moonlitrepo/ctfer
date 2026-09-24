@@ -160,6 +160,8 @@ $ cat flag.txt
 flag{r3t2l1bc_or_r3t2w1n_y0u_ch0se_th3_p4th}
 $
 ```
+funfact : gw baru discover kalo ternyata fungsi unused_but_links_system itu akan memanggil system(/bin/sh). yap udah ada argumennya, tapi karena code ku masih work ya no problem, nnti gw update.
+
 
 gokilll
 
