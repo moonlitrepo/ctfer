@@ -109,7 +109,7 @@ gadget address  : **0x401264**
 
 rencananya : mengisi buffer hingga penuh sesuai offset yang dihitung, lalu menimpa return address dengan fungsi win.
 
-berikut [skrip python](ret2win_solver.py) nya.
+berikut [skrip python](ret2win-solver.py) nya.
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(easy_r21)
 └> python3 solver.py
@@ -129,7 +129,7 @@ flag{r3t2l1bc_or_r3t2w1n_y0u_ch0se_th3_p4th}
  rencananya : sama juga, mengisi buffer hingga penuh namun tidak menimpa return address dengan fungsi tapi dengan rop gadget poprdi. memasukkan alamat string /bin/sh ke rdi dan 
  mengeksekusi system() dengan rdi sebagai argumen pertamanya. (sama saja seperti system(/bin/sh) ) .
 
- berikut [skrip_python_lagi](ret2shell_solver.py)
+ berikut [skrip_python_lagi](ret2shell-solver.py)
 
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(easy_r21)
