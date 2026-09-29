@@ -37,7 +37,7 @@ HIGH MEMORY
 +--------------------------+-------------------+
 |  STACK CANARY (random)   |  EBP - 0x04 (-4)  |  <- value hex random, selalu diakhiri null bytes (00)
 +--------------------------+-------------------+
-|  char buf[5]             |  EBP - 0x0C (-12) |  <- buffer diletakkan PALING DEKAT canary walau di deklarasikan di urutan terakhir
+|  char buf[5]             |  EBP - 0x0C (-12) |  <- buffer biasanya diletakkan PALING DEKAT canary walau di deklarasikan di urutan terakhir
 +--------------------------+-------------------+
 |  short e                 |  EBP - 0x0E (-14) |  <- non-buffer digeser ke bawah
 +--------------------------+-------------------+
