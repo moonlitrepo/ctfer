@@ -25,7 +25,7 @@ mendapatkan akses shell dan mengambil flagnya
 1. canary tidak aktif
 2. pin tertulis hardcoded di source code
 3. buffer overflow
-4. rentan akses shell
+4. command injection via buffer overflow
 
 ## analysis
 setelah mendownload file binary yang diberikan, saya lakukan _fast check_ dengan memeriksa metadata, proteksi, dan menjalankan program untuk mencari informasi.
@@ -257,7 +257,7 @@ flag : **LKS{fef704d7d14172787d15b71b8b9b2dcc}**
 
 ## rekomendasi mitigasi
 
-1. kerentanan leak pin,
+1. hardcoded credentials,
    pada bagian validasi pin, sangat disarankan untuk menggunakan teknik **Encryption-based Validation / Ciphertext Comparison** dimana
    pin asli dienkripsi dan input akan melalui proses enkripsi yang sama lalu hasil enkripsinya akan di bandingkan dengan hasil enkripsi pin. ini akan menyulitkan peretas
    dalam mencari pin asli walaupun berhasil mendapatkan source code program. contoh enkripsi kuat :
@@ -265,11 +265,11 @@ flag : **LKS{fef704d7d14172787d15b71b8b9b2dcc}**
    - RSA
    - AES
    - custom encryption / obfuscation
-     rentan :
+     rentan (disederhanakan dari hasil dekompilasi):
      ```C
-     local_28[0x0] = 1234; 
-     local_28[0x1] = 0000;
-     local_28[0x2] = 9999;
+     local_28[0x0] = "1234"; 
+     local_28[0x1] = "0000";
+     local_28[0x2] = "9999";
      iVar1 = strcmp(param_1,local_28[local_10]);
      ```
      aman
@@ -290,7 +290,7 @@ flag : **LKS{fef704d7d14172787d15b71b8b9b2dcc}**
    fgets(local_b8,0x39,stdin)
    ```
    
-4. kerentanan akses shell,
+3. kerentanan akses shell,
    untuk menambah tingkat keamanan , tidak disarankan untuk menggunakan fungsi system() untuk mencetak teks. lebih baik gunakan fungsi pencetak teks standart seperti printf(),
    dan puts()
    rentan :
@@ -303,7 +303,7 @@ flag : **LKS{fef704d7d14172787d15b71b8b9b2dcc}**
    printf("VAULT UNLOCKED: $10,000,000 transferred successfully\n")
    ```
    
-5. mitigasi tambahan,
+4. mitigasi tambahan,
    pada kasus ini proteksi canary tidak di aktifkan. disarankan untuk mengaktifkan seluruh proteksi untuk meningkatkan keamanan binary.
    ```bash
    gcc -fstack-protector-all -pie -Wl,-z,relro,-z,now -Wl,-z,noexecstack source.c -o binary
