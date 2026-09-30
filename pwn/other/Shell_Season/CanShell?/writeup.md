@@ -21,7 +21,6 @@ menjadi dapat mengeksekusi apapun yang ada di stack.
 
 aku coba jalankan programnya untuk melihat apa yang program ini lakukan
 
-<p align="center"><img width="860" height="407" alt="image" src="https://github.com/user-attachments/assets/0cd32597-0c3b-45bf-a7af-e131bb3d287a" /></p>
 
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(try2)
