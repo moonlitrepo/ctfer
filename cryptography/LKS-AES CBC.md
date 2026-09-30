@@ -1,13 +1,11 @@
 # AES CBC LKS
 
-# Deskripsi
-Hanya admin yang mendapatkan burger bangor
+## Deskripsi
+Hanya admin yang mendapatkan burger bangor.
 
+## Source Code
 
-# Analisis
-
-Source code =
-```Python
+```python
 import json
 import re
 from os import urandom
@@ -41,7 +39,6 @@ def build_profile(username: str) -> bytes:
         "username": username,
         "isAdmin": 0,
     }
-    
     return json.dumps(profile, separators=(",", ":")).encode()
 
 def issue_cookie(username: str) -> str:
@@ -62,7 +59,7 @@ def decrypt_cookie(token_hex: str) -> bytes:
     return unpad(cipher.decrypt(ciphertext), BLOCK_SIZE)
 
 def check_admin(token_hex: str, flag: str) -> tuple[bool, str]:
-    try:    
+    try:
         plaintext = decrypt_cookie(token_hex)
         profile = json.loads(plaintext.decode("latin-1"))
     except Exception:
@@ -115,38 +112,100 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
 ```
 
-di chall ini kita di berikan pembuat cookie sederhana dimana cookie di enkripsi dengan aes cbc.username yang kita masukan akan di masukan ke json {"username":”username”,"isAdmin": 0} lalu di buat string dan dienkrispsi.setelah itu ada juga system pengecekkan admin,kita di katakan admin jika json "isAdmin": 1,jadi kita bisa memanipulasi chipher text dari server untuk kita ubah string “0” jadi 1 supaya mendapat flag.
-Solusi
+## Analisis
 
-Dikarena kan sebelum chipher text di deskripsi tidak ada autentifikasi tambahan,jadi kita bisa langsung mengxorkan chipher text “0” dengan “0” dan dengan “1”,nanti “0” dari chipher text dan “0” dari kita akan saling menghilangkan di karena kan sifat dari xor,lalu nanti “0” yang ada di chipher text akan berubah jadi “1”  ((A^B) ^ A = B).Jadi sebelum kita mengoxkan “0” kita harus tau,posisi pasti dari “0”.sebelum di enkripsi plain text percobaan kita Adalah {"username":"a","isAdmin":0} yang panjang nya Adalah 28 dan jika sudah di enkripsi akan menghasilkan fa6f3b8f64f002f891cbadd82a2d8afb85b279714fe58ee87531aaf841ef7b445ec951742bad5dd6c56bd07794d4d9cc yang panjangnya 48.disini kita harus membuat {"username":"a","isAdmin":0} ada di blok terakhir supaya saat di deskripsi plain text json yang kita kirim untuk di check apakah admin bernilai 1 tidak rusak dan terbaca oleh server.jadi kita buat username nya jadi “a” * 19 nanti akan menjadi string json akan menjadi {"username":"aaaaaaaaaaaaaaaaaaa","isAdmin":0}.blok plaintext ke 0 akan terisi {"username":"aaa,blok 1 akan terisi aaaaaaaaaaaaaaaa dan blok 2 akan terisi ","isAdmin":0}.jadi sekarang 0 ada di index ke 12,cara mencari posisi pasti nya 
-32(total bytes di blok 1 & 2) + 12 = 44
-jadi “0” ada di index ke 44,setelah tau posisinya tinggal kita flip “0” supaya berubah jadi “1” agar kita di anggap admin dan di kasih flag.teknik ini Namanya Adalah byte flipping attack.
-karena di index 44(blok 2 dari chipher text dan blok 1 plain text)kita rubah dengan meng xor kan nya dengan “0” dan “1” maka blok 1 plain text akan jadi acak,untuk di jadikan tumbal saat proses dekripsi 
-supaya saat proses deskripsi hasil dari chipher text blok ke 2 index 44 bisa di xor dengan chipher text blok ke 1 index ke 44 yang kita sudah ubah nilai nya jadi “0” ^ “1”,sehingga nanti index 44 dari 
-plain text yang nilai nya “0” akan di xorkan dengan “0” ^ “1” (( “0” ^ (“0” ^ “1”)) nanti hasilnya akan menjadi “1”.Karena blok yang ke 1 plaintext kita tumbal kan maka hasilnya bisa berkemungkinan besar
-akan berubah jadi byte sampah yang membuat saat kita cek admin akan invalid,jadi kita tinggal memasukan cookie yang sudah kita flip secara berulang sampai cookie kita di acc server
-SOLVER
-```Python
+Di challenge ini kita diberikan pembuat cookie sederhana, di mana cookie dienkripsi dengan AES-CBC. Username yang kita masukkan akan dimasukkan ke dalam JSON:
+
+```json
+{"username": "username", "isAdmin": 0}
+```
+
+lalu diubah menjadi string dan dienkripsi.
+
+Selain itu, ada sistem pengecekan admin — kita dianggap admin jika `"isAdmin": 1`. Jadi, kita bisa memanipulasi ciphertext dari server untuk mengubah string `"0"` menjadi `"1"` agar mendapatkan flag.
+
+## Solusi
+
+Karena tidak ada autentikasi tambahan (seperti MAC/HMAC) sebelum ciphertext didekripsi, kita bisa langsung melakukan **XOR** pada ciphertext:
+
+- XOR-kan byte target ciphertext dengan `"0"` dan `"1"`.
+- Karena sifat XOR, `"0"` dari ciphertext dan `"0"` yang kita masukkan akan saling menghilangkan `((A ^ B) ^ A = B)`, sehingga byte tersebut akhirnya berubah menjadi `"1"`.
+
+Sebelum melakukan XOR, kita harus tahu **posisi pasti** dari karakter `"0"` (nilai `isAdmin`) di dalam ciphertext.
+
+### Mencari Posisi Byte Target
+
+Plaintext percobaan untuk username `"a"`:
+
+```json
+{"username":"a","isAdmin":0}
+```
+
+Panjangnya 28 byte. Setelah dienkripsi:
+```
+fa6f3b8f64f002f891cbadd82a2d8afb85b279714fe58ee87531aaf841ef7b445ec951742bad5dd6c56bd07794d4d9cc
+```
+
+Panjangnya 48 byte (termasuk IV).
+
+Kita perlu memastikan bagian `{"username":"...","isAdmin":0}` berada tepat di **blok terakhir**, supaya saat proses dekripsi, JSON yang dikirim untuk dicek tidak rusak dan tetap bisa dibaca server.
+
+Untuk itu, kita buat username menjadi `"a" * 19`, sehingga JSON menjadi:
+
+```json
+{"username":"aaaaaaaaaaaaaaaaaaa","isAdmin":0}
+```
+
+Pembagian per blok (16 byte per blok):
+- **Blok 0**: `{"username":"aaa`
+- **Blok 1**: `aaaaaaaaaaaaaaaa`
+- **Blok 2**: `","isAdmin":0}`
+
+Sekarang karakter `"0"` berada di **index ke-12** pada blok 2. Untuk mendapatkan posisi absolutnya:
+```
+32 (total byte blok 0 & 1) + 12 = 44
+```
+
+Jadi karakter `"0"` berada di **index ke-44** pada ciphertext (dengan IV di depan). Tinggal kita flip byte ini agar berubah menjadi `"1"`, sehingga server menganggap kita admin dan memberikan flag.
+
+### Byte Flipping Attack
+
+Teknik ini disebut **byte flipping attack**.
+
+Karena index 44 berada di **blok ciphertext ke-2**, memodifikasi byte pada blok ciphertext ke-1 (blok sebelumnya) akan memengaruhi hasil dekripsi blok ke-2 pada posisi yang sama (karena mode CBC melakukan XOR antara hasil dekripsi blok ciphertext saat ini dengan blok ciphertext sebelumnya).
+
+Saat kita XOR-kan byte pada index 44 blok ciphertext ke-1 dengan `"0" ^ "1"`, maka:
+
+- Blok plaintext ke-1 (blok "tumbal") akan berubah menjadi byte acak/sampah — ini tidak masalah karena blok ini bukan bagian JSON yang kita perhatikan.
+- Blok plaintext ke-2 pada index 44 (yang bernilai `"0"`) akan ter-XOR dengan `"0" ^ "1"`, sehingga hasilnya:
+
+"0" ^ ("0" ^ "1") = "1"
+
+
+Karena blok ke-1 menjadi rusak (byte sampah), ada kemungkinan hasil dekripsi blok tersebut membuat keseluruhan JSON tidak valid (`Invalid session`). Karena itu, cookie hasil flip perlu dicoba berulang kali sampai diterima oleh server.
+
+## Solver
+
+```python
 from pwn import *
-io = process(["python3","chall.py"])
+
+io = process(["python3", "chall.py"])
+
 def get_cookie(username):
-    io.sendlineafter(b"> ",b"1")
-    io.sendlineafter(b"Username: ",username.encode())
+    io.sendlineafter(b"> ", b"1")
+    io.sendlineafter(b"Username: ", username.encode())
     hasil = io.recvline().decode().strip()
     print(hasil)
-    return bytes.fromhex(hasil.split(": ",1)[1])
-    
+    return bytes.fromhex(hasil.split(": ", 1)[1])
+
 def check_cookie(cookie_new):
-    io.sendlineafter(b"> ",b"2")
-    io.sendlineafter(b"Session token: ",cookie_new.hex().encode())
-    
+    io.sendlineafter(b"> ", b"2")
+    io.sendlineafter(b"Session token: ", cookie_new.hex().encode())
     return io.recvline()
 
-for percobaan in range(1,200):
+for percobaan in range(1, 200):
     cookie_enc = bytearray(get_cookie("a" * 19))
 
     cookie_enc[44] ^= ord("0") ^ ord("1")
@@ -155,5 +214,3 @@ for percobaan in range(1,200):
         print(respon.decode())
         break
 ```
-
-
