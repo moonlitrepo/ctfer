@@ -149,9 +149,30 @@ lalu hasilperkaliannya disimpan di r2. maka r2 = r3*r2, r2 = 12,
 program melakukan ldr lagi untuk menimpa value r3 yang sebelumnya bernilai 3 jadi ditimpa dengan 2 (value di r7+12), dan register r3 dan r2 dijumlah. maka 2 + 12 = 14
 
 r3 dipindah ke r0 sebagai return value lalu stack di tutup (adds r7, 20) 
+
+prove
 ```
-└> qemu-arm -L /usr/arm-linux-gnueabihf -g 2222 ./calc_arm32
-hasil = 14
+pwndbg> disas
+Dump of assembler code for function add:
+   0x00400504 <+0>:     push    {r7}
+   0x00400506 <+2>:     sub     sp, #20
+   0x00400508 <+4>:     add     r7, sp, #0
+   0x0040050a <+6>:     str     r0, [r7, #12]
+   0x0040050c <+8>:     str     r1, [r7, #8]
+   0x0040050e <+10>:    str     r2, [r7, #4]
+   0x00400510 <+12>:    ldr     r3, [r7, #8]
+   0x00400512 <+14>:    ldr     r2, [r7, #4]
+   0x00400514 <+16>:    mul.w   r2, r3, r2
+   0x00400518 <+20>:    ldr     r3, [r7, #12]
+   0x0040051a <+22>:    add     r3, r2
+   0x0040051c <+24>:    mov     r0, r3
+=> 0x0040051e <+26>:    adds    r7, #20
+   0x00400520 <+28>:    mov     sp, r7
+   0x00400522 <+30>:    ldr.w   r7, [sp], #4
+   0x00400526 <+34>:    bx      lr
+End of assembler dump.
+pwndbg> p/d $r0
+$1 = 14
 ```
 welldone
 
@@ -164,8 +185,7 @@ main()
    0x00000000004007ec <+16>:    mov     w0, #0x2                        // #2
    0x00000000004007f0 <+20>:    bl      0x4007b0 <add>
 ```
-kurang lebih sama , hanya saja nama register yang digunakan berbeda, pada arm64 bit, register berukuran full 64 bit menggunakan huruf w, sedangkan setengah alias 32 bit bukan r tapi
-x, entah kenapa ga dibuat sama kek 32 bit, tapi aturannya begitu
+kurang lebih sama , hanya saja nama register yang digunakan berbeda, pada arm64 bit, register berukuran full 64 bit menggunakan huruf x, sedangkan jika program mebutuhkan 32 bit bukan r tapi w, entah kenapa ga dibuat sama kek 32 bit, tapi aturannya begitu
 
 add()
 ```assembly
@@ -194,8 +214,20 @@ terakhir program load lagi dari sp+12 , ini arg1 bernilai 2. dan melakukan add. 
 
 prove:
 ```
-└> qemu-arm64 -L /usr/arm-linux-gnueabihf -g 2222 ./calc_arm64
-hasil = 14
+Dump of assembler code for function add:
+   0x00000000004007b0 <+0>:     sub     sp, sp, #0x10
+   0x00000000004007b4 <+4>:     str     w0, [sp, #12]
+   0x00000000004007b8 <+8>:     str     w1, [sp, #8]
+   0x00000000004007bc <+12>:    str     w2, [sp, #4]
+   0x00000000004007c0 <+16>:    ldr     w1, [sp, #8]
+   0x00000000004007c4 <+20>:    ldr     w0, [sp, #4]
+   0x00000000004007c8 <+24>:    mul     w1, w1, w0
+   0x00000000004007cc <+28>:    ldr     w0, [sp, #12]
+   0x00000000004007d0 <+32>:    add     w0, w1, w0
+=> 0x00000000004007d4 <+36>:    add     sp, sp, #0x10
+   0x00000000004007d8 <+40>:    ret
+pwndbg> p/d $w0
+$2 = 14
 ```
 
 
@@ -219,6 +251,18 @@ rbp : register base pointer, jadi base stack. klaim zona di memori
 rsp : register stack pointer, ini mennunjuk ke rbp awalnya, jika stack membutuhkan suatu tempat berukuran tertentu, rsp akan dikurangi dan ia akan menunjuk ke ujung stack, sebagai
 batas ujung stack. tapi biasanya jadi alamat awal input karena buffer biasanya disimpan dari akhir stack (alamat terkecil stack)
 ```
+# argumen pada arm
+```
+aku gunakan referensi arm64
+sederhananya ada register
+x0 sampai x30
+dimana x0 hingga x5 akan jadi arg 1 - 6
+lalu sisanya general purpose
+ada juga register sp untuk base pointer,
+x29 digunakan sebagai frame pointer,
+dan x30 untuk return address.
+hanya itu yang ku ingat
+```
 
 # prolog x86 & 64 bit
 ```asembbly
@@ -226,16 +270,54 @@ batas ujung stack. tapi biasanya jadi alamat awal input karena buffer biasanya d
    0x000000000040115c <+5>:     mov    rbp,rsp
    0x000000000040115f <+8>:     sub    rsp,0x10
 ```
-sederhana, di awal fungsi , program sealu meletakkan register rbp untuk menandai awal stack, lalu memindah rsp agar menunjuk ke stack tersebut . terakhir menyiapkan ukuran stack
+di awal fungsi , program sealu meletakkan register rbp untuk menandai awal stack, lalu memindah rsp agar menunjuk ke stack tersebut . terakhir menyiapkan ukuran stack
 sesuai kebutuhan program . pada kasus ini rsp di kurangi 0x10, artinya rsp yang awalnya mennunjuk ke rbp akan turun ke rbp-0x10 / ujung stack sebagai pembatas bahwa alamat di rbp-0 hingga
 rbp - 0x10 sudah dijadikan stack. ini penting agar program tidak melakukan timpa alamat yang sama yang dipakai stack ketika sedang menjalankan instruksi di stack lain.
 
+# epilog
+```asemmbly
+   0x0000000000401150 <+26>:    mov    eax,DWORD PTR [rbp-0x4]
+   0x0000000000401153 <+29>:    add    eax,edx
+   0x0000000000401155 <+31>:    pop    rbp
+   0x0000000000401156 <+32>:    ret
+```
+ini contoh untuk epilog fungsi yang menghasil kan return value, prove bahwa rax merupakan register yang menjadi return value dari fungsi dan hasil aritmatika. (disini ia menggunakan eax karena return valuenya cukup kecil sehingga tidak membutuhkan register 64 bit penuh)
+
+```asemmbly
+   0x000000000040118e <+55>:    mov    eax,0x0
+   0x0000000000401193 <+60>:    leave
+   0x0000000000401194 <+61>:    ret
+```
+sedangkan yang ini adalah epilog dari main() program akan mengisi nilai eax dengan nol (return 0) merupakan perilaku dari standart normal exit code di program bahasa C / C++, setelah itu terdapat instruksi leave, ini setara dengan instruksi mov rsp,rbp . maka stack pointer akan kembali menunjuk ke base pointer sehingga membersihkan stack yang pernah dibuat tadi. terakhir adalah ret. instruksi ini melakukan hal yang cukup spesifik, yaitu pop rip. karena program sudah di bersihkan maka puncak stack saat ini adalah return address ke program selanjutnya. maka setelah ini program akan melompat ke program selanjutnya. 
+
+# prolog arm64
+```asemmbly
+   0x00000000004007dc <+0>:     stp     x29, x30, [sp, #-32]!
+   0x00000000004007e0 <+4>:     mov     x29, sp
+```
+x29 adalah frame pointer dan x30 adalah link register, disini mereka melewati instruksi stp yang artinya store pair, mereka berdua langsung di simpan di stack offset sp - 32
+tanda seru di akhir berarti write back, alias memperbarui alamat sp tepat di alamat offset nya itu, kasusnya disini adalah sp-32, misal alamat sp adalah 100, maka setelah instruksi ini sp akan berubah jadi 68 dan register x29 serta x30 akan tersimpan di offset + 
+
+setelah mendapatkan sp baru, value nya dipindah e frame pointer (x29). karena fungsi ini termasuk leaf func (fungsi ringan yang tidak melibatkan buffer untuk menyimpan data kompleks & tidak memanggil fungsi lain) maka fungsi ini tidak membuat stack
+
+epilog 
+```asembbly
+   0x000000000040080c <+48>:    ldp     x29, x30, [sp], #32
+   0x0000000000400810 <+52>:    ret
+```
+pada epilog, program melakukan reverse dari prolog, yaitu lewat instruksi ldp (load pair) dan benar kan? offser nya berubah jadi sp + 32 karena sudah di writeback di prolog.
+sekarang value frame pointer dan return address kembali ke registernya. value mereka aman walaupun x29 dan x30 akan terpakai di call function lain. yah di contohnya sih ini
+memang belum ada fungsi yang memanggil fungsi lain. 
+
+
 # perbedaan utama x86 dan ARM 
-perbedaan utama nya yang paling jelas adalah register tentunya. register yang digunakan memiliki nama yang berbeda walaupun fungsinya sama persis. misal jika di x86-64 register 
-untuk argumen 1adalah rdi, di arm register tersebut dinamai r0 , atau x0 jika di aarch 64 jika di aarch64 mau reg setengah (32 bit) pakenya W. selain register perbedaan mencolok lainnya adalah namainstruksi dan cara kerjanya.
-di x86-64 menggunakan mov dan menyalin value dari kanan ke kiri, sedangkan di arm untuk mengelola value register - stack menggunakan str dan ldr, str sendiri walaupun di bahasa 
-assembly, tapi instruksinya lawan arah, dia menyalin value register di kiri ke kanan (stack) (str  r0,[r7,#8]). dan untuk memindah value dari stack ke register menggunakan instruksi
-yang berbeda yaitu ldr (load register). 
+- perbedaan utama nya yang paling jelas adalah register tentunya. register yang digunakan memiliki nama yang berbeda walaupun fungsinya sama persis. misal jika di x86-64 register 
+- untuk argumen 1 adalah rdi, di arm register tersebut dinamai r0 , atau x0 jika di aarch64, apabila butuh reg setengah (32 bit) pakenya W. selain register perbedaan mencolok lainnya adalah nama instruksi dan cara kerjanya.
+- di x86-64 menggunakan mov dan menyalin value dari kanan ke kiri, sedangkan di arm untuk mengelola value register - stack menggunakan str dan ldr, str sendiri walaupun di bahasa assembly, tapi instruksinya lawan arah, dia menyalin value register di kiri ke kanan (stack) (str  r0,[r7,#8]). dan untuk memindah value dari stack ke register menggunakan instruksi yang berbeda yaitu ldr (load register).
+- tidak hanya nama tapi arsitektur arm memang mengharuskan sebuah data untuk disimpan (ldr) di register baru bisa di kelola, dikelola dalam artian baru bisa di lakukan sesuatu seperti penambahan data, aritmatika, atau proses lain. berbeda dengan x86 yang bisa melakukan mov reg,[rbp-offset], di arm , semua data harus ada di register untuk
+bisa di pindahkan dan di olah nantinya.
+- proses prolog, epilog. di arm return address dan frame pointer awalnya tersimpan di register x30 dan x29. setelahnya akan ada instruksi khusus yaitu stp dimana program akan menyimpan mereka di stack poiniter - offset.
+
 
 ## cdecl
 ini standart calling conventions pada binary compile an C , x86. dimana semua argumen yang akan dimasukkan ke fungsi akan di masukkan ke stack dari kanan ke kiri, misal ada 3 argumen
