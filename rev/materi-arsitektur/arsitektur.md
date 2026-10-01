@@ -207,8 +207,8 @@ sederhana, untuk 6 argumen , system V menggunakan beberapa register mulai dari :
 ```
 rdi : register destination, ini jadi arg 1
 rsi : register source , ini jadi arg 2
-rdx : jujur lupa, tapi dipake jadi arg3
-rcx : counter ga si? buat loop atau lupa gw, ini arg4
+rdx : register data , tapi dipake jadi arg 3
+rcx : register counter buat loop biasanya, ini arg 4
 r8 : general register  , arg 5
 r9 : general register, arg 6
 
@@ -220,7 +220,7 @@ rsp : register stack pointer, ini mennunjuk ke rbp awalnya, jika stack membutuhk
 batas ujung stack. tapi biasanya jadi alamat awal input karena buffer biasanya disimpan dari akhir stack (alamat terkecil stack)
 ```
 
-# epilog x86 & 64 bit
+# prolog x86 & 64 bit
 ```asembbly
    0x000000000040115b <+4>:     push   rbp
    0x000000000040115c <+5>:     mov    rbp,rsp
@@ -232,7 +232,7 @@ rbp - 0x10 sudah dijadikan stack. ini penting agar program tidak melakukan timpa
 
 # perbedaan utama x86 dan ARM 
 perbedaan utama nya yang paling jelas adalah register tentunya. register yang digunakan memiliki nama yang berbeda walaupun fungsinya sama persis. misal jika di x86-64 register 
-untuk argumen 1adalah rdi, di arm register tersebut dinamai r0, atau w0 jika di aarch 64. selain register perbedaan mencolok lainnya adalah namainstruksi dan cara kerjanya.
+untuk argumen 1adalah rdi, di arm register tersebut dinamai r0 , atau x0 jika di aarch 64 jika di aarch64 mau reg setengah (32 bit) pakenya W. selain register perbedaan mencolok lainnya adalah namainstruksi dan cara kerjanya.
 di x86-64 menggunakan mov dan menyalin value dari kanan ke kiri, sedangkan di arm untuk mengelola value register - stack menggunakan str dan ldr, str sendiri walaupun di bahasa 
 assembly, tapi instruksinya lawan arah, dia menyalin value register di kiri ke kanan (stack) (str  r0,[r7,#8]). dan untuk memindah value dari stack ke register menggunakan instruksi
 yang berbeda yaitu ldr (load register). 
