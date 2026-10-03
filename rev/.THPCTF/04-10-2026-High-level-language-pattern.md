@@ -98,10 +98,42 @@ undefined * cari(int input_id)
 }
 
 ```
+saya juga mengambil bentuk kode nya dalam asemmbly:
+```asemmbly
+                             LAB_001011bd                                    XREF[1]:     001011f8(j)  
+        001011bd 8b 45 fc        MOV        EAX,dword ptr [RBP + i]
+        001011c0 48 98           CDQE
+        001011c2 48 c1 e0 04     SHL        RAX,0x4
+        001011c6 48 89 c2        MOV        RDX,RAX
+        001011c9 48 8d 05        LEA        RAX,[tabel_0x104020]                             = 65h    e
+                 50 2e 00 00
+        001011d0 8b 04 02        MOV        EAX=>tabel_0x104020,dword ptr [RDX + RAX*0x1]    = 65h    e
+        001011d3 39 45 ec        CMP        dword ptr [RBP + local_1c],EAX
+        001011d6 75 18           JNZ        LAB_001011f0
+        001011d8 8b 45 fc        MOV        EAX,dword ptr [RBP + i]
+        001011db 48 98           CDQE
+        001011dd 48 c1 e0 04     SHL        RAX,0x4
+        001011e1 48 89 c2        MOV        RDX,RAX
+        001011e4 48 8d 05        LEA        RAX,[tabel_0x104020]                             = 65h    e
+                 35 2e 00 00
+        001011eb 48 01 d0        ADD        RAX,RDX
+        001011ee eb 0f           JMP        LAB_001011ff
+
+```
+hanya bagian inti dari loop nya, disini adalah contoh bentuk asemmbly dari bentuk akses struct. di awalu oleh merubah variabel int menjadi ukuran 64 bit. normalnya di C ukuran tipe data int adalah 4 byte atau 32 bit,karena nanti akan melakukan perhitungan menggunakan register 64 bit seperti RAX,RDX dsb maka ukurannya harus disamakan dengan instruksi **CDQE**
+
+lalu program menggunakan cara yang sama seperti peraturan x86 yaitu alamat+offset.
+dalam kasus ini mengakses struct pada tabel. pertama program akan melakukan shiftleft sebanyak 4 byte , ini sama saja dengan * 16 . karena 2 pangkat 4 sama dengan 16. menyimpan nya di RDX. setelah itu program mengambil alamat target untuk dihitung ukurannya dengan rumus tadi, tampilannya dalam asm adalah [RDX + RAX*0x1], dimana rdx adalah offset hasil perulangannya, lalu rax adalah base address dari tablenya.ini literaly menunjuk ke elemen pertama pada tiap struct yang ada di table, karena tiap loop program akan melompati 16 byte address, sementara itu memang adalah ukuran tiap struct nya.
+
+kode di bawah nya merupakan coompare apakah id input kita sama dengan apa yang ada di alamat tersebut
+
 dari sini mulai terlihat jelas. pertama fungsi ini melakukan perulangan sebanyak 4 kali untuk memeriksa apakah id input kita valid dengan salah satu id di struct program ini.
 cara fungsi ini memilih id nya adalah dengan membandingkan input id dengan **alamat tabel + (i*16)** ini artinya jarak tiap id pertama ke id selanjutnya adalah 16 byte, jika i = 0 maka 
-program akan membandingkan input id dengan alamat tabel + 0*16 , artinya alamat tabel offset 0 , awal tabel. jika i = 1 maka membandingkan dengand data id kedua di jarak 16 byte setelah id pertama
-dan seterusnya hingga 4. ini artinya total keseluruhan ada 4 id valid. 
+program akan membandingkan input id dengan alamat tabel + 0*16 , artinya alamat tabel offset 0 , awal tabel. jika i = 1 maka membandingkan dengand data id kedua di jarak 16 byte setelah id pertama. dapat disimpulkan ukuran tiap struct adalah 16 byte.
+
+saya sebut satu struct karena dalam ukuran 16 byte tersebut terdapat 3 elemen pada offset tabel_addr+0 = id , tabel_addr+0x4 = harga barang, dan tabel_addr+0x8 = stok
+dan seterusnya hingga 4. ini artinya total keseluruhan ada 4 id valid. ada kodenya di main()
+prove :  
 
 untuk melihatnya cukup klik dua kali pointer tabel tersebut (**&tabel_0x104020**)
 
@@ -228,18 +260,29 @@ setelah di pisah seperti ini mulai terlihat data nya. ingat bahwa id di ambil da
 
 angka angka pada kelipatan tersebut adalah **65,66,67,68,99** 
 
+sebelum mencobanya pada file binary, saya akan menganalisis struct pertama terlebih dahulu,
 ```
-┌[rotalactf]-[LAPTOP-6QMID52F]-(refleksi)
-└> ./warung 65
-Barang tidak ditemukan
+        00104020 65              ??         65h    e 0
+        00104024 ac              ??         ACh
+        00104025 0d              ??         0Dh
+        00104028 14              ??         14h
 ```
-masih ditolak , saya buka kembali dekompiler dan langsung menyadari bahwa angka tersebut masih berupa hex, jika di convert menjadi desimal maka datanya akan menjadi : 101,102,103,104,1945
+tiap elemen memiliki ukuran 4 byte, setelah elemen terakhir, struct terisi dengan byte 0 , ini biasanya merupakan padding dari compiler agar ukuran nya tetap pada kelipatan tertentu. 
+seperti dari data, kali ini table addr nya adalahj **0x104020** , offset +0 maka data nya adalah 0x65, atau 101 dalam desimal. selanjutnya table addr + 0x4 untuk harga. perlu diperhatikan di offset ini ada 2 data yaitu 0xac dan 0x0d . jarak mereka hanya 1 byte. maka kemungkinan mereka merupakan satu data yang sama. dalam format little endian perlu diubah dulu jadi big endian,urut dari atas `0xac0d` dirubah jadi `0x0dcc` , atau **3500** dalam desimal. terakhir pada table addr + 0x8 ada data 0x14, 20 dalam desimal.
 
-well sudah terlihat jelas mana "impostor" nya, namun karena jumlah data sedikit , hanya 5 jadi tidak salah juga kalau mencoba menginput mereka satu satu
+dengan ini lengkap sudah satu stuct utuh kita pada offset table+0
+id = 101   
+harga = 3500   
+stok = 20
+
+saatnya menjalankan
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(refleksi)
 └> ./warung 101
 Barang biasa. Harga: 3500, stok: 20
+```
+perfect, ini sama persis. sekarang tingal ekstrak 3 data lain dan masukkan ke binary dalam format desimal.
+```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(refleksi)
 └> ./warung 102
 Barang biasa. Harga: 2000, stok: 50
@@ -259,6 +302,7 @@ selesai,
 FLAG : **THPCTF{struct_itu_cuma_offset}**
 
 evaluasi nya jika melihat pemanggilan sesuatu menggunakan pointer address + offset. langsung saja baca offset keberapa yang menjadi bagian penting untuk di analisis dan masuk ke alamat yang di tunjuk
+
 pointer tersebut untuk menghitung offset yang didapat untuk mengekstrak datanya. 
 
 selain itu terus perhatikan tipe data dan tipe integer, pada jendela listing biasanya alamat memory dan data yang ada di situ akan tertulis dalam bentuk heksadesimal. tergantung konteks chall juga
@@ -271,3 +315,38 @@ Key = 2a: THPCTF{struct_itu_cuma_offset}
 karena inti chall bukan bagaimanapun dapatkan flag, jadi saya gunakan ini sebagai opsi kedua apabila terjadi error nanti.
 
 untuk analisis gdb saya belum bisa lanjutkan karena saat saya mengetik kata ini waktu menunjukkan pukul 01:05 pagi. teman satu kelas ku sudah tidur pulas. bruh
+
+day 4 , pukul 06-26 
+
+saya berhasil mengetahui cara mencari breakpoint pada file dengan PIE dan dalam kondisi stripped, yaitu cari alamat target melalui ghidra, dan lakukan starti agar program berhenti tepat pada instruksi pertama nya, baru `breakrva addr` misal `breakrva 0x1201` untuk memasang breakpoint melalui offset yang sudah diketahui dari ghidra. selanjutnya cukup continue hingga program berhenti pada breakpoint yang ditentukan. 
+
+```
+breakrva 0x1201
+```
+selain itu saya juga menemukan informasi lain bahwa main() ada pada alamat berikut dan memiliki 67 baris instruksi.
+```
+x/67i 0x555555555201
+```
+
+analisis gdb ini akan saya fokus kan ke satu proses saat input merupakan id 1945:
+```asemmbly
+    ↓
+   0x5555555551bd    mov    eax, dword ptr [rbp - 4]        EAX, [0x7fffffffdc9c] => 4
+   0x5555555551c0    cdqe
+   0x5555555551c2    shl    rax, 4
+   0x5555555551c6    mov    rdx, rax                        RDX => 0x40
+ ► 0x5555555551c9    lea    rax, [rip + 0x2e50]             RAX => 0x555555558020 ◂— 0xdac00000065 /* 'e' */
+   0x5555555551d0    mov    eax, dword ptr [rdx + rax]      EAX, [0x555555558060] => 0x799
+   0x5555555551d3    cmp    dword ptr [rbp - 0x14], eax     0x799 - 0x799     EFLAGS => 0x246 [ cf PF af ZF sf IF df of iopl:00 ac ]
+   0x5555555551d6  ✘ jne    0x5555555551f0              <0x5555555551f0>
+```
+ini merupakan bagian loop , mirip seperti di ghidra. karena data id 1945 ada di struct terakhir maka proses compare nya akan berjalan pada loop ke terakhir yaitu loop ke 5.
+terlihat nilainya sama sehingga program tidak melakukan jne. 
+
+disini karena saya menggunakan pwnbdg jadi value tiap register akan dicetak tanpa harus leak satu satu, pertama jelas disitu terdapat value dari tipe data integer di rbp-4 yang disimpan di eax, itu adalah value looping sekarang, 4. setelah dirubah menjadi 64 bit, 4 tersebut akan di shiftleft sebanyak 4 byte, sehingga menghasilkan 4*16 atau 4<<4 = 64 byte (0x40) dalam hex. yang ini akan disimpan di rdx karena rax akan digunakan untuk menyimpan base address dari tabel itu sendiri.
+
+setelah program menghitung alamat elemen pertama pada struct terakhir dengan rumus standart x86 yaitu [addr + offset] atau sebaliknya juga tidak masalah. program mengambil valuenya dan membandingkannya dengan input id kita .
+
+nilai hex dari 1945 adalah 0x799, dan pada instruksi di 0x0x5555555551d3, cmp menghasilkan return 0 , karena nilainya sama persis maka program tidak melompat dan melanjutkan untuk melakukan instruksi sesuai kondisi sekarang. karena 1945 adalah id rahasia, maka kondisi ini akan mentrigger percabangan else dan melakukan dekripsi flagnya untuk dicetak ke layar.
+
+
