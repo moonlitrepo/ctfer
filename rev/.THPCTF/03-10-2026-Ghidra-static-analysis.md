@@ -803,3 +803,354 @@ optimization ini ketika di decompile akan jadi lebih sederhana ya.
 
 kesimpulan menganalisis membutuhkan lebih banyak informasi untuk menjawab pertanayaan tak diketahui, karena tingkat akurasi fakta dari jawaban pertanyaan analisis berbanding lurus
 dengan jumlah informasi yang dimiliki.
+
+
+
+# chall ke dua : vault
+
+## note
+date : 03-10-2026  
+laporan ke dua digunakan untuk menutup kemampuan yang belum dikuasai pada laporan pertama.
+
+## analysis
+
+seperti pada sebelumnya , saya melakukan prosedur _fast check_ untuk memeriksa metadata serta perilaku program. 
+```
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> file vault
+vault: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=af5abbcb84aa152e44aff3a675546479f50bf869, for GNU/Linux 3.2.0, stripped
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./vault
+usage: vault <code>
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./vault tes123
+Wrong length
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ltrace ./vault aaa
+puts("Wrong length"Wrong length
+)                                                              = 13
++++ exited (status 1) +++
+```
+
+berikut hasil nya :
+- file : stripped binary x86-64
+- dijalankan dengan 1 argumen.
+- argumen di validasi panjangnya.
+
+saya langsung mengimpor file ini ke ghidra untuk melanjutkan analisis. 
+
+karena ini stripped binary, tentu nama fungsi nya tidak tersedia pada decompiler, namun saya tetap bisa menemukan main function dengan melihat entry point, pada entry point selalu ada fungsi __libc_start_main() yang menggunakan fungsi utama sebagai argumen pertamanya, saya merubah nama fungsi tersebut menjadi **main()**
+```C
+
+void processEntry entry(undefined8 param_1,undefined8 param_2)
+
+{
+  undefined1 auStack_8 [8];
+  
+  __libc_start_main(main,param_2,&stack0x00000008,0,0,param_1,auStack_8);
+  do {
+                    /* WARNING: Do nothing block with infinite loop */
+  } while( true );
+}
+
+```
+saya lanjutkan dengan menganalisis keseluruhan program dan merename semua variabel & nama fungsi yang penting. berikut keseluruhan hasil dekompilasi dengan renamed functions & variable.
+
+```C
+
+undefined8 main(int argc,long (input_code)_argv)
+
+{
+  int iVar1;
+  undefined8 ret;
+  long in_FS_OFFSET;
+  byte local_1d;
+  int coded;
+  int i;
+  int c;
+  long canary;
+  
+  canary = *(long *)(in_FS_OFFSET + 40);
+  if (argc == 2) {
+    iVar1 = check_length(*(undefined8 *)((input_code)_argv + 8));
+    if (iVar1 == (7)_0x104020) {
+      iVar1 = check_code(*(undefined8 *)((input_code)_argv + 8),&coded);
+      if (iVar1 == 0) {
+        puts("Invalid symbol");
+        ret = 1;
+      }
+      else if (vault_code == coded) {
+        local_1d = 0;
+        for (i = 0; i < (7)_0x104020; i = i + 1) {
+          local_1d = local_1d ^ *(byte *)((long)i + *(long *)((input_code)_argv + 8));
+        }
+        printf("Vault opened: ");
+        for (c = 0; c < (21)_00104050; c = c + 1) {
+          putchar((uint)((&(enc)_0x104028)[c] ^ local_1d));
+        }
+        putchar(10);
+        ret = 0;
+      }
+      else {
+        puts("Vault stays closed");
+        ret = 1;
+      }
+    }
+    else {
+      puts("Wrong length");
+      ret = 1;
+    }
+  }
+  else {
+    puts("usage: vault <code>");
+    ret = 1;
+  }
+  if (canary != *(long *)(in_FS_OFFSET + 40)) {
+                    /* WARNING: Subroutine does not return */
+    __stack_chk_fail();
+  }
+  return ret;
+}
+
+
+int check_length(long param_1)
+
+{
+  undefined4 i;
+  
+  for (i = 0; *(char *)(param_1 + i) != '\0'; i = i + 1) {
+  }
+  return i;
+}
+
+
+undefined8 check_code(long input_code,uint *dest(coded))
+
+{
+  uint value;
+  int i;
+  
+  value = 7;
+  for (i = 0; i < (7)_0x104020; i = i + 1) {
+    switch(*(undefined1 *)(input_code + i)) {
+    case 'a':
+      value = value + 13;
+      break;
+    case 'b':
+      value = value ^ 90;
+      break;
+    case 'c':
+      value = value << 1;
+      break;
+    case 'd':
+      value = value - 4;
+      break;
+    case 'e':
+      value = value ^ value >> 3;
+      break;
+    case 'f':
+      value = value + i;
+      break;
+    default:
+      return 0;
+    }
+  }
+  *dest(coded) = value;
+  return 1;
+}
+
+```
+untuk alamat memory pada perulangan for seperti **(7)_0x104020** saya menulis value serta alamatnya sekaligus, yaitu yang ada di dalam kurung (7) itu artinya di alamat tersebut menyimpan angka 7. begitu pula angka lain seperti 21 atau enc yang artinya encrypted.
+
+jika lebih di perhatikan, alamat beberapa variabel tersebut terlihat berdekatan, jika di analisis kemungkinan mereka berada pada satu section yaitu section .data .saya tidak bisa menyimpulkan bahwa mereka satu struct karena saya kekurangan informasi. saya lebih menganggap mereka sebagai variabel ,pertama karena mereka disimpan di section .data yang bisa readd n write. selain itu saat proses akses data ini dekompiler menggunakan alamat memori tempat data itu berada, ini ciri ciri dari variabel static/ variabel global, alamat mereka juga sangat berdekatan. 
+
+```
+                             vault_code                                      XREF[1]:     main:00101339(R)  
+        00104020 a8 ff ff bf     undefined4 BFFFFFA8h
+                             (7)_0x104020                                    XREF[3]:     check_code:0010126e(R), 
+                                                                                          main:001012df(R), 
+                                                                                          main:00101389(R)  
+        00104024 07 00 00 00     undefined4 00000007h
+                             (enc)_0x104028                                  XREF[2]:     main:001013b6(*), 
+                                                                                          main:001013bd(*)  
+        00104028 32              ??         32h    2
+        00104029 2e              ??         2Eh    .
+        0010402a 36              ??         36h    6
+        0010402b 25              ??         25h    %
+        0010402c 32              ??         32h    2
+        0010402d 20              ??         20h     
+        0010402e 1d              ??         1Dh
+        0010402f 0c              ??         0Ch
+        00104030 13              ??         13h
+        00104031 0b              ??         0Bh
+        00104032 16              ??         16h
+        00104033 39              ??         39h    9
+        00104034 12              ??         12h
+        00104035 52              ??         52h    R
+        00104036 04              ??         04h
+        00104037 0a              ??         0Ah
+        00104038 55              ??         55h    U
+        00104039 15              ??         15h
+        0010403a 39              ??         39h    9
+        0010403b 52              ??         52h    R
+        0010403c 14              ??         14h
+        0010403d 55              ??         55h    U
+        0010403e 39              ??         39h    9
+        0010403f 08              ??         08h
+        00104040 56              ??         56h    V
+        00104041 12              ??         12h
+        00104042 39              ??         39h    9
+        00104043 15              ??         15h
+        00104044 05              ??         05h
+        00104045 52              ??         52h    R
+        00104046 14              ??         14h
+        00104047 1f              ??         1Fh
+        00104048 1b              ??         1Bh
+        00104049 00              ??         00h
+        0010404a 00              ??         00h
+        0010404b 00              ??         00h
+        0010404c 00              ??         00h
+        0010404d 00              ??         00h
+        0010404e 00              ??         00h
+        0010404f 00              ??         00h
+                             (21)_00104050                                   XREF[1]:     main:001013d2(R)  
+        00104050 21 00 00 00     undefined4 00000021h
+
+```
+
+untuk alur nya dari atas, program akan menghitung panjang string lalu membandingkannya dengan **x104020** yang menyimpan 7 , artinya panjang argumen harus sebanyak 7 byte / 7 karakter.
+saya langsung coba input dengan 7 karakter argumen. 
+```
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./vault aaaaaaa
+Vault stays closed
+```
+program menjawab hal yang berbeda dan jika di lihat lagi dari dekompilasi nya, string itu ada setelah fungsi validasi panjang argumen, artinya saya sudah berhasil membypass 1 validasi nya, sisanya adalah menemukan password / key asli dari program ini.
+
+pada fungsi check_code , program melakukan validasi lagi pada input argumen nya menggunakan switch case, 
+```C
+    case 'a':
+      value = value + 13;
+      break;
+    case 'b':
+      value = value ^ 90;
+      break;
+    case 'c':
+      value = value << 1;
+      break;
+    case 'd':
+      value = value - 4;
+      break;
+    case 'e':
+      value = value ^ value >> 3;
+      break;
+    case 'f':
+      value = value + i;
+      break;
+    default:
+      return 0;
+```
+kesimpulannya program ini hanya menerima huruf a hingga f, tiap case huruf memiliki algoritma yang berbeda dan value yang berbeda beda, fungsi check_code memiliki perulangan sebanyak 7 kali , sama dengan panjang dari input kita. dan semua hasil case dari perulangan tersebut akan disimpan pada variabel value, lalu value akan di salin ke variabel coded di fungsi main. 
+
+selain itu program juga membuat alur ketika karakter yang di input tidak ada pada rentang huruf a - f maka program akan melompat ke alamat memori lain dan menghentikan program. berikut detailnya:
+```Asembbly
+        00101317 e8 bf fe        CALL       check_code                                       undefined check_code(undefined8 
+                 ff ff
+        0010131c 85 c0           TEST       ret+0x4,ret+0x4
+        0010131e 75 19           JNZ        LAB_00101339
+        00101320 48 8d 05        LEA        ret,[s_Invalid_symbol_0010203d]                  = "Invalid symbol"
+                 16 0d 00 00
+        00101327 48 89 c7        MOV        argc=>s_Invalid_symbol_0010203d,ret              = "Invalid symbol"
+        0010132a e8 61 fd        CALL       <EXTERNAL>::puts                                 int puts(char * __s)
+                 ff ff
+        0010132f b8 01 00        MOV        ret+0x4,0x1
+                 00 00
+        00101334 e9 b3 00        JMP        LAB_001013ec < ini alamat pengecekan value canary
+                 00 00
+
+                             LAB_001013ec                                    XREF[4]:     001012c5(j), 001012fd(j), 
+                                                                                          00101334(j), 0010135a(j)  
+        001013ec 48 8b 55 f8     MOV        RDX,qword ptr [RBP + canary]
+        001013f0 64 48 2b        SUB        RDX,qword ptr FS:[0x28]
+                 14 25 28 
+                 00 00 00
+        001013f9 74 05           JZ         LAB_00101400
+        001013fb e8 a0 fc        CALL       <EXTERNAL>::__stack_chk_fail                     undefined __stack_chk_fail()
+                 ff ff
+                             -- Flow Override: CALL_RETURN (CALL_TERMINATOR)
+
+epilog :
+                             LAB_00101400                                    XREF[1]:     001013f9(j)  
+        00101400 c9              LEAVE
+        00101401 c3              RET
+
+
+
+
+```
+sebelum mengakhiri program, ia akan mencetak string 'invalid symbols' terlebih dahulu.
+
+jika melihat ke fungsi check_code
+
+selanjutnya pada fungsi main, variabel coded akan dibandingkan dengan vault_code ,
+```C
+      else if (vault_code == coded) {
+        local_1d = 0;
+        for (i = 0; i < (7)_0x104020; i = i + 1) {
+          local_1d = local_1d ^ *(byte *)((long)i + *(long *)((input_code)_argv + 8));
+        }
+        printf("Vault opened: ");
+        for (c = 0; c < (21)_00104050; c = c + 1) {
+          putchar((uint)((&(enc)_0x104028)[c] ^ local_1d));
+```
+jika sama maka program akan menggunakan input code kita untuk membuat kunci xor guna mendekripsi enc alias byte terenkripsi dari sesuatu yang saya asumsikan sebagai strings tersembunyi/ flag nya.
+
+untuk verifikasi menggunakan gdb belum bisa ku lakukan karena sekarang saya masih sedikit kesulitan menentukan breakpoint pada file binary stripped yang memiliki proteksi PIE. selain itu tidak ada string sebelum validasi yang ada.
+
+terakhir adalah langkah exploitnya. pertama saya tegaskan untuk kasus ini hampir mustahil melakukan inverse rumus dari vault_code ke code nya, karena ada 6 case dan 7 string
+maka ada 6<sup>7</sup> = sekitar 279.936 kombinasi berbeda. terdengar sangat banyak,kabar baiknya bagi komputer angka ini hanya angin lewat saja. maka cara menyelesaikan ini yang tepat bukan mengandalkan pemikiran inverse tapi pemikiran maju (brute force)
+
+saya juga sudah memeriksa skrip brute force yang saya buat. berikut fullcodenya
+```python
+def s(current_string, depth):
+    if depth == 0:
+        value = 7
+        for i , c in enumerate(current_string):
+            p = c
+            match p:
+                case 'a':value = value + 13
+                case 'b':value = value ^ 90
+                case 'c':value = value << 1
+                case 'd':value = value - 4
+                case 'e':value = value ^ (value >> 3)
+                case 'f':value = value + i
+                case _:break
+            value = value & 0xFFFFFFFF
+
+        if value == 0xBFFFFFA8:
+            print(f"done : {current_string}")
+            return True
+        return False
+
+    for char in 'abcdef':
+        if s(current_string+char,depth-1):
+            return True
+s("",7)
+
+```
+
+program ini menggunakan kedalaman (depth) untuk memeriksa tiap kombinasi. ketika depth sudah mencapai nol maka program akan menghitung hasilnya dan melakukan compare ke vault_code. 
+lalu depth kembali ke 7 dan membuat cabang baru untuk mencoba kemungkinan selanjutnya.
+
+hasil nya :
+```
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> python3 solver.py
+[+] Ketemu! Input: ddedcbf
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./vault ddedcbf
+Vault opened: THPCTF{jump_t4bl3s_4r3_n0t_sc4ry}
+```
+done flag : **THPCTF{jump_t4bl3s_4r3_n0t_sc4ry}**
+
+menurut saya pribadi ini cukup scary.
