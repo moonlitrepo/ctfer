@@ -476,5 +476,130 @@ sekaligus menjawab pertanyaan kenapa tiap struct tersedia 4 byte kosong. justru 
 setelah mempelajari ini jika ada kasus struct dengan 4 elemen namun hanya 3 elemen yang terisi data, elemen terakhir dibiarkan kosong. sehingga struct lain yang hanya memiliki 3 data tetap harus memiliki 4 elemen. maka asumsi pertama yang bisa dijadikan target analisis adalah ada struct yang memiliki 4 data yang mengisi ke empat elemen tersebut.
 
 
+## main via string
+untuk melacak main melalui string tentu harus mengetahui string yang ada. cara termudah adalah coba cari dengan menjalankan program
+```
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./warung
+pakai: warung <id_barang>
+┌[rotalactf]-[LAPTOP-6QMID52F]-(vau)
+└> ./warung 123
+Barang tidak ditemukan
+```
+maka sekarang saya memiliki beberapa string untuk dicari xrefnya. memang saya tidak tahu apakah string ini di gunakan di main atau tidak, kalaupun tidak ia pasti ada di fungsi yang dipanggil dari main. 
+
+cara mencarinya bisa menggunakan ghidra, melalui menu search -> for strings -> search -> lalu masukkan string diketahui ke kolom pencarian di bawah.
+saya coba cari 'Barang'
+
+dan ghidra langsung menunjukkan informasi seputar string ini
+```
+DEFINED	00102048	s_Barang_tidak_ditemukan_00102048	ds "Barang tidak ditemukan"	"Barang tidak ditemukan"	string	23	true
+```
+alamat nya adalah **0x102048**
+
+untuk pergi ke alamat tersebut, saya gunakan fitur go to, tinggal klik tombol g lalu masukkan alamat tersebut
+
+```
+                             s_Barang_tidak_ditemukan_00102048               XREF[2]:     main:00101258(*), 
+                                                                                          main:0010125f(*)  
+        00102048 42 61 72        ds         "Barang tidak ditemukan"
+                 61 6e 67 
+                 20 74 69 
+        0010205f 00              ??         00h
+
+```
+yup saya menemukan tempat string ini disimpan, terakhir adalah mencari reference nya, dari mana saja string ini digunakan
+```
+0010125f		MOV argc=>s_Barang_tidak_ditemukan_00102048,result_cari	PARAM
+```
+disini string tersebut digunakan sebagai parameter, apakah fungsi pencetak? untuk mencari tahu saya coba lakukan go to lagi ke alamat **0x10125f**
+
+dan benar saja, alamat tersebut adalah tempat string tersebut di cetak dengan fungsi puts, dan jika saya melihat sekitar, ternyata saya sudah ada di main()
+
+```
+puts("Barang tidak ditemukan");
+```
+
+potongan kode:
+```C
+
+undefined8 main(int argc,long argv)
+
+{
+  int input_id;
+  undefined8 ret;
+  long result_cari;
+  int i;
+  
+  if (argc == 2) {
+    input_id = atoi(*(char **)(argv + 8));
+    result_cari = cari_barang(input_id);
+    if (result_cari == 0) {
+      puts("Barang tidak ditemukan");   /* xref dari string 'Barang'*/
+      ret = 1;
+```
+## retype nama field di struct
+```
+                             barang[5]_0x104020                              XREF[3]:     cek_barang:001011c9(*), 
+                                                                                          cek_barang:001011d0(*), 
+                                                                                          cek_barang:001011e4(*)  
+        00104020 65 00 00        warung
+                 00 ac 0d 
+                 00 00 14 
+           00104020 65 00 00 00 ac  barang[5]                         field0_0x0                        XREF[3]:     cek_barang:001011c9(*), 
+                    0d 00 00 14 00                                                                                   cek_barang:001011d0(*), 
+                    00 00 00 00 00                                                                                   cek_barang:001011e4(*)  
+              00104020 65 00 00 00 ac  barang                            [0]                               XREF[3]:     cek_barang:001011c9(*), 
+                       0d 00 00 14 00                                                                                   cek_barang:001011d0(*), 
+                       00 00 00 00 00                                                                                   cek_barang:001011e4(*)  
+                 00104020 65 00 00 00     int       65h                     id                                XREF[3]:     cek_barang:001011c9(*), 
+                                                                                                                           cek_barang:001011d0(*), 
+                                                                                                                           cek_barang:001011e4(*)  
+                 00104024 ac 0d 00 00     int       DACh                    harga
+                 00104028 14 00 00 00     int       14h                     stok
+                 0010402c 00 00 00 00     int       0h                      key
+              00104030 66 00 00 00 d0  barang                            [1]
+                       07 00 00 32 00 
+                       00 00 00 00 00
+                 00104030 66 00 00 00     int       66h                     id
+                 00104034 d0 07 00 00     int       7D0h                    harga
+                 00104038 32 00 00 00     int       32h                     stok
+                 0010403c 00 00 00 00     int       0h                      key
+              00104040 67 00 00 00 e0  barang                            [2]
+                       2e 00 00 08 00 
+                       00 00 00 00 00
+                 00104040 67 00 00 00     int       67h                     id
+                 00104044 e0 2e 00 00     int       2EE0h                   harga
+                 00104048 08 00 00 00     int       8h                      stok
+                 0010404c 00 00 00 00     int       0h                      key
+              00104050 68 00 00 00 4c  barang                            [3]
+                       1d 00 00 00 00 
+                       00 00 00 00 00
+                 00104050 68 00 00 00     int       68h                     id
+                 00104054 4c 1d 00 00     int       1D4Ch                   harga
+                 00104058 00 00 00 00     int       0h                      stok
+                 0010405c 00 00 00 00     int       0h                      key
+              00104060 99 07 00 00 01  barang                            [4]
+                       00 00 00 01 00 
+                       00 00 2a 00 00
+                 00104060 99 07 00 00     int       799h                    id
+                 00104064 01 00 00 00     int       1h                      harga
+                 00104068 01 00 00 00     int       1h                      stok
+                 0010406c 2a 00 00 00     int       2Ah                     key
+
+```
+## refleksi
+
+untuk refleksi saya banyak mempelajari hal baru hari ini.
+- saya baru mengetahui bahwa ukuran struct harus sama walaupun tidak semua memiliki jumlah data yang sama.
+- 4 byte berisi nol yang ada di tiap struct merupakan indikator bahwa struct ini merupakan barang biasa atau barang langka
+- saya masih ragu dengan penamaan elemen tiap struct , apakah disebut field atau elemen, tapi saya masih nyaman menyebutnya elemen, seperti elemen id.
+- elemen ke 4 merupakan kunci ,maka tiap struct memiliki elemen id, harga, stok, dan kunci.
+- saya awalnya mengira bahwa 4 byte terakhir tiap struct merupakan padding,
+namun setelah membaca ulang kode: else if (*(int *)(struct_barang + 12) == 0) {
+ternyata 4 byte terakhir merupakan field yang masih DIGUNAKAN sehingga bukan bertindak sebagai padding, justru disini ia bertindak sebagai tanda bahwa apakah barang ini barang biasa atau barang langka.
+
+
+
 
 
