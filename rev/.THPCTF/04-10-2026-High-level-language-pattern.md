@@ -350,3 +350,131 @@ setelah program menghitung alamat elemen pertama pada struct terakhir dengan rum
 nilai hex dari 1945 adalah 0x799, dan pada instruksi di 0x0x5555555551d3, cmp menghasilkan return 0 , karena nilainya sama persis maka program tidak melompat dan melanjutkan untuk melakukan instruksi sesuai kondisi sekarang. karena 1945 adalah id rahasia, maka kondisi ini akan mentrigger percabangan else dan melakukan dekripsi flagnya untuk dicetak ke layar.
 
 
+# revisi : 
+nama pointer saya rename menjadi barang[5] karena dalam 
+fungsi **cari** saya rename menjadi **cari_barang** agar konteksnya lebih spesifik:
+```C
+
+undefined * cari_barang(int input_id)
+{
+  int i;
+  i = 0;
+  while( true ) {
+    if (4 < i) {
+      return (undefined *)0;
+    }
+    if (input_id == *(int *)(&barang[5]_0x104020 + (long)i * 16)) break;
+    i = i + 1;
+  }
+  return &barang[5]_0x104020 + (long)i * 16;
+}
+
+```
+fungsi ini akan melakukan validasi compare input id dengan struct yang ada di binary dengan cara melakukan looping sebanyak 5 kali (5 iterasi) dari 0 - 4. cara fungsi ini menunjuk ke elemen id di struct adalah dengan menggunakan kelipatan 16. (iteration * 16) . 
+
+dari hasil analisis sebelumnya sudah diketahui bahwa struct barang memiliki 3 elemen, yaitu id:int , harga:int , dan stok:int. jadi saya membuat struct baru di ghidra menyesuaikan bentuk struct ini
+```asemmbly
+                             barang[5]_0x104020                              XREF[3]:     cari_barang:001011c9(*), 
+                                                                                          cari_barang:001011d0(*), 
+                                                                                          cari_barang:001011e4(*)  
+        00104020 65 00 00        warung
+                 00 ac 0d 
+                 00 00 14 
+           00104020 65 00 00 00 ac  barang[5]                         field0_0x0                        XREF[3]:     cari_barang:001011c9(*), 
+                    0d 00 00 14 00                                                                                   cari_barang:001011d0(*), 
+                    00 00 00 00 00                                                                                   cari_barang:001011e4(*)  
+              00104020 65 00 00 00 ac  barang                            [0]                               XREF[3]:     cari_barang:001011c9(*), 
+                       0d 00 00 14 00                                                                                   cari_barang:001011d0(*), 
+                       00 00 00 00 00                                                                                   cari_barang:001011e4(*)  
+              00104030 66 00 00 00 d0  barang                            [1]
+                       07 00 00 32 00 
+                       00 00 00 00 00
+              00104040 67 00 00 00 e0  barang                            [2]
+                       2e 00 00 08 00 
+                       00 00 00 00 00
+              00104050 68 00 00 00 4c  barang                            [3]
+                       1d 00 00 00 00 
+                       00 00 00 00 00
+              00104060 99 07 00 00 01  barang                            [4]
+                       00 00 00 01 00 
+                       00 00 2a 00 00
+```
+display hexdump di ghidra menampilkan 5 byte per baris, tapi itu tidak memengaruhi struct. tipe struct warung berisi barang[5] sementara  barang sendiri merupakan struct dengan 3 elemen bertipe data integer, saya tambahkan 1 integer lagi agar menjadi pas kelipatan 16 byte per struct. dan memasangnya pada pointer barang[5]_0x104020 tadi.
+
+maka dengan ini struct terlihat semakin jelas dan akan jauh lebih mudah di teliti.
+
+saya juga kembali menganalisis di gdb menggunakan id 1945 (desimal dari hex 0x99) , 
+```Asemmbly
+   0x5555555551bd    mov    eax, dword ptr [rbp - 4]        EAX, [0x7fffffffdccc] => 4
+   0x5555555551c0    cdqe
+   0x5555555551c2    shl    rax, 4
+   0x5555555551c6    mov    rdx, rax                        RDX => 0x40
+   0x5555555551c9    lea    rax, [rip + 0x2e50]             RAX => 0x555555558020 ◂— 0xdac00000065 /* 'e' */
+   0x5555555551d0    mov    eax, dword ptr [rdx + rax]      EAX, [0x555555558060] => 0x799
+ ► 0x5555555551d3    cmp    dword ptr [rbp - 0x14], eax     0x799 - 0x799     EFLAGS => 0x246 [ cf PF af ZF sf IF df of iopl:00 ac ]
+```
+pertama eax merupakan int penyimpan nilai iterasi saat ini, ini adalah iterasi ke 5, value iterasinya 4. setelah di shiftleft menjadi 4*16 = 64 (0x40 dalam hex) dan disimpan di rdx. jadi rdx ini merupakan offsetnya untuk pointer nanti menunjuk id ke 5. 
+selanjutnya program memindahkan suatu alamat dari offset rip + 0x2e50 ke rax. pwndbg sudah me leak isinya yaitu huruf e, 0x65 dalam hex. alamat nya adalah **0x555555558020**
+ini tepat pada elemen pertama di struct barang[0] , yang dijadikan sebagai base address dari struct nya.
+
+setelah program memiliki offset nya, (rdx) dan base address nya (rax) program tinggal menjumlahkan keduanya untuk menemukan alamat dari elemen pertama dari struct ke 5 (barang[4]) yang tepat menunjuk ke angka 0x799 (1945) dalam desimal.
+
+terakhir adalah perbandingan sebagai validasi apakah id input merupakan id valid yang data nya ada di binary atau tidak. 
+
+saya melakukan hexdump pada base address nya untuk melihat semua value dari struct tersebut.hexdump pada pwndbg memang standartnya mencetak 16byte * 4baris , sedangkkan struct ini terdiri dari 16byte *4 , jadi saya tambahkan argumen 0x50, untuk membaca sebanyak 0x50 bye, bukan 0x40 byte
+
+```
+pwndbg> hexdump 0x555555558020 0x50
++0000 0x555555558020  65 00 00 00  ac 0d 00 00  14 00 00 00  00 00 00 00  │e.......│........│
++0010 0x555555558030  66 00 00 00  d0 07 00 00  32 00 00 00  00 00 00 00  │f.......│2.......│
++0020 0x555555558040  67 00 00 00  e0 2e 00 00  08 00 00 00  00 00 00 00  │g.......│........│
++0030 0x555555558050  68 00 00 00  4c 1d 00 00  00 00 00 00  00 00 00 00  │h...L...│........│
++0040 0x555555558060  99 07 00 00  01 00 00 00  01 00 00 00  2a 00 00 00  │........│....*...│
+```
+lihat, tiap 4 byte terdapat data. dari baris pertama, itu merupakan data struct pertama, 
+```
+0x65 : 0x0dac : 0x14 :  
+0x66 : 0x7d0 : 0x32 : 
+0x67 : 0x2ee0 : 0x8 : 
+0x68 : 0x1d4c : 0x0 :
+0x799 : 0x1 : 0x1 : 0x2a :
+```
+jika dalam desimal :
+```
+101: 3500: 20
+102: 2000: 50
+103: 12000: 8
+104: 7500: 0
+1945: 1 : 1 : 42  
+```
+
+nah ini sangat valid dengan hasil percobaan id yang saya lakukan di awal, dan yang cukup menarik pada id di struct 5 (1945) ,di structnya terdapat 4 elemen yang terisi semua, dan elemen terakhir sepertinya terisi oleh angka yang familiar, yap itu kunci xor yang digunakan untuk mendekripsi flag.
+
+ternyata jika saya teliti lagi:
+```C
+      for (i = 0; i < 30; i = i + 1) {
+        putchar(*(uint *)(result_cari + 12) ^
+                (uint)(byte)"~bzi~lQY^X_I^uC^_uI_GKuELLYO^Wpakai: warung <id_barang>"[i]);
+```
+program memang menggunakan result_cari + 12 untuk kunci xor. dan jika kasus id nya adalah 1945, result_cari + 12 adalah struct ke 5 yang tepat menunjuk ke elemen ke 4 di struct ini
+prove di ghidra saat saya break di cmp struct 5
+```
+   0x5555555551d0    mov    eax, dword ptr [rdx + rax]      EAX, [0x555555558060] => 0x799
+ ► 0x5555555551d3    cmp    dword ptr [rbp - 0x14], eax     0x799 - 0x799     EFLAGS => 0x246 [ cf PF af ZF sf IF df of iopl:00 ac ]
+```
+alamat : 0x555555558060 | leak value dari eax | menunjuk tepat ke id 0x799 , tepat di struct ke 5
+
+saya akan praktekan hal yang sama disini, mengambiil value result_cari + 12 . 
+```
+pwndbg> x/x 0x555555558060+12
+0x55555555806c: 0x0000002a
+```
+persis 0x2a.
+
+sekaligus menjawab pertanyaan kenapa tiap struct tersedia 4 byte kosong. justru itu pertanyaan yang mengarah ke sini, pada struct 5 terdapat 4 elemen sehingga struct struct sebelumnya juga harus menyesuaikan ukurannya, agar cpu tidak kebingungan saat mencari offset tiap struct. cpu butuh fixed-size offset seperti base+off. jika ukuran tiap structnya berbeda cpu harus melakukan perhitungan tambahan untuk mencari offset nya yang jelas ini tidak efisien.
+
+setelah mempelajari ini jika ada kasus struct dengan 4 elemen namun hanya 3 elemen yang terisi data, elemen terakhir dibiarkan kosong. sehingga struct lain yang hanya memiliki 3 data tetap harus memiliki 4 elemen. maka asumsi pertama yang bisa dijadikan target analisis adalah ada struct yang memiliki 4 data yang mengisi ke empat elemen tersebut.
+
+
+
+
