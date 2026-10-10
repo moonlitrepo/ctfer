@@ -64,12 +64,18 @@ Observasi :
   atau obfuskasi yang digunakan untuk menyembunyikan data asli flag
 
 ## analisis lanjutan 
-Untuk mencari informasi lebih lanut, saya gunakan gdb. yang pertama saya cari adalah nama fungsi yang tersedia, berikut fungsi relevan yang ditemukan :
+Untuk mencari informasi lebih lanut, saya gunakan gdb. yang pertama saya cari adalah nama fungsi yang tersedia. 
+```
+pwndbg> info functions
+```
+berikut fungsi relevan yang ditemukan :
 - 0x0000000000001229  decode
 - 0x000000000000133e  main
 
 ada fungsi bernama decode yang memverifikasi bahwa flag memang dalam kondisi terenkripsi sekarang. jika decode ini dipanggil maka saya bisa mengambil flag saat runtime program.
-
+```
+pwndbg> disas main
+```
 potongan disassembly dari fungsi main()
 ```
    ======================[ anti debugger ]======================
@@ -86,7 +92,7 @@ observasi:
 - flag akan didekripsi untuk di bandingkan dengan input user. flag bisa di ambil setelah call decode
 
 ## rencana exploitasi
-saya akan selesaikan challenge ini menggu
+saya akan selesaikan challenge ini menggunakan gdb, rencananya :
 - bypass proteksi _anti debugger_ yang ada di **main+80** dengan melakukan jump ke **main+116** setelah atau sebelum ptrace dipanggil.
 - memasang breakpoint di **main+188** dan mengambil flag dalam kondisi terdekripsi.
 
