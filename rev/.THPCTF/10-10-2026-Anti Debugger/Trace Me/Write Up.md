@@ -15,7 +15,7 @@ Kernel : Linux 6.6.87.2-microsoft-standard-WSL2
 Nama Challenge : Trace Me  
 Point : -   
 Kategori : Reverse Engineering  
-File terlampir : [Trace Me](trace-me)  
+File terlampir : [Trace Me](traceme)  
 FLAG : **PRALKS{trace_me_twice}**
 
 ## Ringkasan
