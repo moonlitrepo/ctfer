@@ -1,6 +1,15 @@
 # Z3 Solver
 
-# deskripsi
+## Lingkungan
+OS: Ubuntu 24.04.5 LTS (Noble Numbat) x86_64  
+Kernel: Linux 6.6.87.2-microsoft-standard-WSL2
+
+## _Tools_
+- _Python3 + Z3 libc_
+- _Ghidra_
+- _Text Editor_ (saya menggunakan VS Codium)
+
+## deskripsi
 Nama Challenge : mathme  
 point : -  
 Kategori : Reverse Engineering
@@ -10,10 +19,6 @@ FLAG : **PRALKS{18_7_6_3_9_12_255_167}**
 
 ## Note
 chall ini adalah buatan claude ai, namun spesifikasi dan kualitas chall sudah lebih dari cukup untuk digunakan belajar dasar teknik _reconstruct algorithm_ dan penggunaan _Z3 Solver_
-
-## Lingkungan
-OS: Ubuntu 24.04.5 LTS (Noble Numbat) x86_64  
-Kernel: Linux 6.6.87.2-microsoft-standard-WSL2
 
 ## Ringkasan
 chall ini memiliki 5 persamaan yang harus di selesaikan. setiap persamaan  yang telah diselesaikan merupakan bagian dari flag tersebut. beberapa memang bisa diselesaikan secara manual. namun saya akan menggunakan pendekatan automasi menggunakan _python libc_ **z3** yang jauh lebih andal dalam menyelesaikan persamaan matematika baik itu sederhana maupun kompleks.
