@@ -1,6 +1,6 @@
 hello world
 
-ini cuma repo dengan write up random. 
+untuk tracking pembelajaran ku saja.
 
 
 # konsep stack
