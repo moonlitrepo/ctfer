@@ -17,8 +17,7 @@ type: standard
 FLAG: LKS{F5gSxQkp8ynpGFyvZBeUUAbd}
 
 ## Ringkasan
-challenge ini memberikan sebuah file executable format PE yang di compile dari bahasa Golang. Semua string serta nama fungsi benar benar dihilangkan. main program dapat dicari
-dengan menelusuri entry point lalu melakukan revere pada algoritma validasi flag yang ada di main function.
+challenge ini memberikan sebuah file executable format **PE** yang di compile dari bahasa **Golang**. Semua string serta nama fungsi dihilangkan. main program dapat dicari dengan menelusuri entry point lalu melakukan revere pada algoritma validasi flag yang ada di main function.
 
 ## analisis awal
 
@@ -55,6 +54,15 @@ file program ini di compile dari bahasa Golang. terferifikasi pada key compiler 
 
 analisis saya lanjutkan menggunakan ghidra. nama fungsi dan strings tidak tersedia. main bisa di lacak melalui entrypoint dan menelusuri mekanisme runtime.
 
+rute navigasi entry ke main:
+```
+entry : ppuStack_38 = &PTR_FUN_1402a16a8;
+PTR_FUN_1402a16a8 : FUN_140037860
+FUN_140037860 :
+  if ((DAT_1403cf69e == '\0') && (DAT_1403cf69d == '\0')) {
+    main(uVar5,param_2); /*nama fungsi sudah saya rename*/
+    if (DAT_1403cf6cc != 0)
+```
 bagian utama dari fungsi main :
 ```C
 
@@ -126,3 +134,7 @@ LKS{F5gSxQkp8ynpGFyvZBeUUAbd}
 I only know base64-like LKS flag , so please give me one please? >>LKS{F5gSxQkp8ynpGFyvZBeUUAbd}
 Good! :)
 ```
+
+kesimpulan :
+program ini menggunakan algoritma validasi yang sangat sederhana. hanya membandingkan input dengan bentuk little endian hex yang ada di source code.
+karena mekanisme go + stripped, algoritma tersebut menjadi sulit dilacak keberadaannya serta sulit di analisis.
