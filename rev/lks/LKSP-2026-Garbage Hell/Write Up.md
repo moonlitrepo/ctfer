@@ -11,13 +11,13 @@ description:
 
   author: aseng
 
-value: 500  
-type: standard  
 
-FLAG: LKS{F5gSxQkp8ynpGFyvZBeUUAbd}
+ 
+
+FLAG: **LKS{F5gSxQkp8ynpGFyvZBeUUAbd}**
 
 ## Ringkasan
-challenge ini memberikan sebuah file executable format **PE** yang di compile dari bahasa **Golang**. Semua string serta nama fungsi dihilangkan. main program dapat dicari dengan menelusuri entry point lalu melakukan revere pada algoritma validasi flag yang ada di main function.
+challenge ini memberikan sebuah file executable dengan format **PE32** yang di compile dari bahasa **Golang**. Semua string serta nama fungsi dihilangkan. main program dapat dicari dengan menelusuri entry point, lalu menganalisis algoritma validasi flag yang ada di main function.
 
 ## analisis awal
 
@@ -63,48 +63,69 @@ FUN_140037860 :
     main(uVar5,param_2); /*nama fungsi sudah saya rename*/
     if (DAT_1403cf6cc != 0)
 ```
-bagian utama dari fungsi main :
+karena mekanisme runtime go da stripped binary, akan cukup merepotkan dalam proses analisis nya. maka saya memotong kode tidak penting dan hanya mengambil bagian yang saya asumsikan memengaruhi alur program
+ 
+Note : source telah di potong dan disederhanakan . kode dibawah bukan kode valid yang siap di eksekusi tapi kode yang memuat inti dari program ini (menurut analisis):
 ```C
-
-void main(undefined8 param_1,double param_2)
-  pcVar2 = (char *)*auVar6._16_8_;
-  if (*pcVar2 == 'L') {
+void main(x,y)
+  array = (char *)*auVar6._16_8_;
+  if (*array == 'L') {
     if (uVar1 < 2) {
-      not_valid(1,uVar11,1);
+      not_valid(1,var,1);
     }
-    if (pcVar2[1] == 'K') {
+    if (array[1] == 'K') {
       if (uVar1 < 3) {
-        not_valid(2,uVar11,2);
+        not_valid(2,var,2);
       }
-      if (pcVar2[2] == 'S') {
+      if (array[2] == 'S') {
         if (uVar1 < 4) {
-          not_valid(3,uVar11,3);
+          not_valid(3,var,3);
         }
-        if (pcVar2[3] == '{') goto LAB_14022b45f;
+        if (array[3] == '{') goto validate;
       }
     }
   }
-      if (*(sdword *)(iVar3 + 0x18) != 0x64624155) {
-        uVar12 = FUN_14022bc40(uVar12,param_2);
+  validate:
+
+    if (*(char *)(*stack + 0x1c) != '}') {
+      auVar13 = not_valid(_,param_2);
+    }
+    if (0x1b < (uint)stack[1]) {
+      ptr_stack = *stack;
+      local_70 = (sdword *)(ptr_stack + 0x10);
+      local_68 = 4;
+      local_60 = (sdword *)(ptr_stack + 0x14);
+      local_58 = 4;
+      local_50 = ptr_stack + 0x18;
+      local_48 = 4;
+      if (*(sdword *)(ptr_stack + 0x18) != 0x64624155) {
+        _ = not_valid(_,param_2);
       }
       if ((local_68 != 4) || (*local_70 != 0x76794647)) {
-        uVar12 = FUN_14022bc40(uVar12,param_2);
+        _ = not_valid(_,param_2);
       }
-      if (*(sdword *)(iVar3 + 8) != 0x706b5178) {
-        uVar12 = FUN_14022bc40(uVar12,param_2);
+      if (*(sdword *)(ptr_stack + 8) != 0x706b5178) {
+        _ = not_valid(_,param_2);
       }
       if ((local_58 != 4) || (*local_60 != 0x5565425a)) {
-        uVar12 = FUN_14022bc40(uVar12,param_2);
+        _ = not_valid(_,param_2);
       }
-      if (*(sdword *)(iVar3 + 0xc) != 0x706e7938) {
-        uVar12 = FUN_14022bc40(uVar12,param_2);
+      if (*(sdword *)(ptr_stack + 0xc) != 0x706e7938) {
+        _ = not_valid(_,param_2);
       }
-      if (*(sdword *)(iVar3 + 4) != 0x53673546) {
-        FUN_14022bc40(uVar12,param_2);
+      if (*(sdword *)(ptr_stack + 4) != 0x53673546) {
+        not_valid(_,param_2);
       }
+    }
 ```
 
-main memiliki alur yang memvalidasi input user. untuk mengetahui nilai asli dari data yang tersedia bisa di reverse menggunakan python
+ternyata flag tersedia dalam bentuk little endian hex. berikut datanya setelah diurutkan 
+```
+data (setelah diurutkan sesuai stack) :
+[0x53673546, 0x706b5178, 0x706e7938, 0x76794647, 0x5565425a, 0x64624155]
+```
+
+untuk mengetahui nilai asli dari data yang tersedia bisa di reverse menggunakan python
 
 ```python
 #         0x4         0xc      0x14       0x8       0x10      0x18
