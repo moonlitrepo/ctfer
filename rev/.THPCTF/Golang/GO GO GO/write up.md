@@ -113,7 +113,7 @@ eksekusi pada file biner asli
 
 ```
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(chall4)
-└> echo solarwinds123 | python3 solver.py
+└> echo solarwinds123 | ./main
 Password Plox:
 Welcome
 ```
