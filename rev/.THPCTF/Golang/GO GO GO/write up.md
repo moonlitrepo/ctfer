@@ -15,8 +15,7 @@ Arch:x86-64
 flag : None
 
 ## Ringkasan
-Challenge ini berupa file biner ELF x86-64 (statically linked,stripped). Langkah penyelesaian yang digunakan adalah membedah file biner dengan teknik _static 
-analysis_ menggunakan _DIE_ dan _ghidra_. Flag berhasil di ambil dengan membalik algoritma hex encode pada proses manipulasi string yang dilakukan file biner tersebut.
+Challenge ini berupa file biner ELF x86-64 (statically linked,stripped). Langkah penyelesaian yang digunakan adalah membedah file biner dengan teknik _static analysis_ menggunakan _strings_ dan _ghidra_. Flag berhasil di ambil dengan membalik algoritma hex encode pada proses manipulasi string yang dilakukan file biner tersebut.
 
 ## analisis awal
 pemeriksaan metadata dan mencoba menjalankan file biner untuk mencari informasi perilaku _runtime_ file biner.
