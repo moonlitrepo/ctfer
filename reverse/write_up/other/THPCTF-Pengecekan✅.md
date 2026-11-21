@@ -1,5 +1,9 @@
 # THPCTF-Pengecekan✅
 
+## Tools
+- gdb 
+- strings
+
 ## deskripsi
 di SMK TUNAS HARAPAN PATI punya aplikasi untuk mengecek password, bisakah kamu menebak berapa password nya???
 
@@ -7,6 +11,8 @@ author : P⭐7.
 
 file: [pengecekan](pengecekan)
 
+
+akses Challenge [Pengecekan](https://thpctf.my.id/challenges?challenge=c7020000-0000-4000-8000-000000000017) (pastikan sudah login di platform ctf tersebut)
 ## analisis awal
 pemeriksaan di awali dengan mengidentifikasi file dan menjalankannya untuk mencari tahu perilaku permukaan dari file yang diberikan.
 ```bash
@@ -78,8 +84,8 @@ menabrak breakpoint:
 ```asemmbly
 b► 0x55555555518b <check_serial+34>    mov    rdi, rax     RDI => 0x7fffffffdde0 ◂— 0x4c494b4f47 /* 'GOKIL' */
 ```
-karena aku menggunakan plugin pwndbg maka register rdi langsung tercetak valuenya. disini input yang ku masukkan tersimpan di register rdi. artinya string seriap ada di register
-rsi. pemeriksaan dilanjutkan di tab registers:
+karena aku menggunakan plugin **pwndbg** maka register rdi langsung tercetak valuenya. disini input yang ku masukkan tersimpan di register `rdi`. artinya string serial key ada di register
+`rsi`. pemeriksaan dilanjutkan di tab registers:
 
 ```asemmbly
 ───────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────
@@ -105,12 +111,13 @@ welldone, ternyata flag merupakan password/serial key itu sendiri
 
 flag: `THPCTF{895361}`
 
-kesimpulan dan sedikit _funfact_ karena string `895361` tersedia di program secara hardcoded. string ini terdeteksi oleh strings tool. dan password bisa terlihat dengan jelas
+sedikit _funfact_ karena string `895361` tersedia di program secara hardcoded. string ini terdeteksi oleh strings tool. dan password bisa terlihat dengan jelas
 tanpa perlu debug menggunakan gdb.
+
 ```bash
 ┌[rotalactf]-[LAPTOP-6QMID52F]-(pengecekan)
 └> strings pengecekan | grep 89
 895361
 ```
-namun tetap diperlukan debugging untuk langkah verifikasi.
+namun debugging tetap perlu dilakukan untuk langkah verifikasi kejelasan asal usul string yang ada tersebut.
 
