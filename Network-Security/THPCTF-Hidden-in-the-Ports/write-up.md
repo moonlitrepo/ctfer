@@ -1,5 +1,15 @@
 # Hidden in the Ports
 
+## disclaimer
+untuk dapat mengakses server THPCTF x Rotalactf serta seluruh instance nya. perangkat harus terhubung ke jaringan lokal RotalaCtf atau koneksi lan yang tersedia di kelas
+
+tools :
+- nmap
+- curl
+- netcat
+
+akses Challenge [Hidden in the Ports](http://70.70.70.100:8000/challenges#Hidden%20in%20the%20Ports-83)
+
 ## deskripsi
 Seorang admin lupa menutup sebuah service rahasia di server perusahaan. Service tersebut tidak berjalan di port yang umum, dan petunjuk untuk mengaksesnya tersebar di lebih dari satu tempat.  
 Tugasmu: lakukan reconnaissance terhadap server berikut, temukan service yang tersembunyi, lalu kumpulkan seluruh bagian flag.  
@@ -101,4 +111,23 @@ bisa disimpulkan , saya berhasil mendapatakan sebuah Passphrase , dan clue penti
 jelas , satu satunya layanan dengan port tidak umum disini adalah layanan ketiga , pada port 31337. 
 
 **layanan port 31337**
+
+```bash
+┌[rotalactf]-[LAPTOP-6QMID52F]-(extended-investigation)
+└> nc 70.70.70.150 31337
+SECRET-SVC v1.0 ready | part1=THPCTF{............. | send HELP
+> HELP
+Commands: HELP, AUTH <passphrase>, QUIT
+```
+benar , layanan ini interaktif. dan layanan ini sudah memberikan setengah bagian flagnya. (sengaja saya hilangkan).dan terdapat perintah AUTH dengan argumen passphrase. 
+
+mengingat kata passphrase, sebelumnya di layanan http terdapat header khusus yang mennyimpan value dari passphrase tersebut. percobaan login dilakukan menggunakan passphrase yang sebelumnya berhasil di ambil:
+
+## percobaan login
 <p align="center"> <img width="874" height="192" alt="image" src="https://github.com/user-attachments/assets/dca6a071-a468-4591-b79b-f672c7c809d1" /> </p>
+
+tercetak ACCESS GRANTED menandakan bahwa login berhasil dilakukan. tercetak bersama dengan part2 dari flag:
+
+flag : THPCTF{...........................}
+
+catatan: flag sengaja dihilangkan karena chall ini ada di server pembelajaran materi cyber security sekolah. 
